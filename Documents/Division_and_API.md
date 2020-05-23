@@ -57,19 +57,21 @@ B --> F(前端GUI)
 
 其中包含以下数据成员：
 
-`Database<type_username, type_user> users(file_user);`
+`Database<type_username, type_user> Users(file_users);`
 
-`Database<type_trainID, type_train> trains_unrelease(file_unreleased), trains(file_trains);`
+`Database<type_username, type_username> Cur_users(file_cur_users);`
 
-`Database<type_statinName_startTime, type_trainID> database_station(file_statinName);`
+`Database<type_trainID, type_train> Trains_unreleased(file_unreleased), Trains(file_trains);`
 
-`Database<type_userID_orderID, type_order> database_order(Order)`
+`Database<type_stationName_startTime, type_trainID> Stations(file_statinNames);`
 
-`type_user`类中存储一个用户的全部信息，`type_train`类中存储一次列车的全部信息。
+`Database<type_userID_orderID, type_order> Orders(file_orders)`
 
-`type_train`需包含函数`query(st, ed)`，返回区间`(st, ed)`最大可用票数。
+`type_user`类中存储一个用户T的全部信息，`type_train`类中存储一次列车的全部信息。
 
-`type_statinName_startTime`存储某列车经过的车站和它经过这个车站的时间，**仅存储仍有剩余座位的列车**。
+`type_train`需包含函数`query(st, ed)`，返回区间`(st, ed)`最大U可用票数。
+
+`type_stationName_startTime`存储某列车经过的车站和它经过这个车站的时间，**即使没有剩余座位的列车也要存储**。
 
 `type_userID_orderID`存储用户`id`和该用户的订单`id`（对每个用户从1开始）。
 
