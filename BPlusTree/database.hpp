@@ -1,7 +1,6 @@
-#include <iostream>
-#include <cstdio>
-#include <cstring>
-#include <cmath>
-#include <string>
-#include "include/List.h"
+#ifndef TICKETSYSTEM_2020_DATABASE_TEST_H
+#define TICKETSYSTEM_2020_DATABASE_TEST_H
 
+
+
+#endif //TICKETSYSTEM_2020_DATABASE_TEST_H

@@ -48,7 +48,7 @@ ostream& operator<<(ostream & os, const List<K> & L)
         os<<x->value<<" ";
         x=x->next;
     }
-    os<<endl;
+    //os<<endl;
     return os;
 }
 #endif //TICKETSYSTEM_2020_LIST_H
