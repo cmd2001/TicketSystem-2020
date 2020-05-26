@@ -47,7 +47,7 @@ B --> F(前端GUI)
 
 `modify(Key, Old_value, New_value)`：将`(Key, Old_Value)`修改为`(Key, New_value)`，返回值为布尔型，表示是否修改成功。失败条件同上。
 
-`query(Key)`：查询`Key`对应的`Value`。**保证此时的Key不出现重复！**返回`std::pair<bool, typeof Value>`，表示查询是否成功及查询到的`Value`值。失败条件同上。
+`query(Key)`：查询`Key`对应的`Value`。**保证此时的Key不出现重复** 返回`std::pair<bool, typeof Value>`，表示查询是否成功及查询到的`Value`值。失败条件同上。
 
 `range(Key1, Key2)`：查询区间`[Key1, Key2]`对应的全部`Value`，返回`List<typeof Value>`，表示查询到的值。**其中`List`为自定义的列表类，支持迭代器遍历。**（为什么不使用`stl`？因为不允许。为什么能用`std::pair`？因为`std::pair`在`iostream`中有包含）**为什么不返回对应的`Key`？因为可以保证Key在Value中已被包含。**（这一点在core.hpp的实现中将会提及）
 
