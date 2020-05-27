@@ -19,4 +19,5 @@ int main(){
     List<int> test=a.range(1,6);
     std::cout<<test<<std::endl;
     std::cout<<"???"<<std::endl;
+    a.clear();
 }

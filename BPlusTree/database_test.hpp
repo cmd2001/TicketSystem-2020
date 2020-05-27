@@ -15,6 +15,7 @@ private:
     string Filename;
 public:
     typedef pair<Key,Value> Pair;
+
     void insert(Key K,Value V){
         ifstream in(Filename,ios::binary|ios::in);
         if(!in){cerr<<"insert F open error"<<endl;}
@@ -50,6 +51,7 @@ public:
         }
         in.close(),out.close();
     }
+
     bool erase(Key K,Value V){
         ifstream in(Filename,ios::binary|ios::in);
         if(!in){cerr<<"erase F open error"<<endl;}
@@ -87,6 +89,7 @@ public:
 
         return true;
     };
+
     bool modify(Key K,Value OldV,Value NewV){
         fstream io(Filename,ios::binary|ios::in|ios::out);
         if(!io){cerr<<"modify F open error"<<endl;}
@@ -110,13 +113,14 @@ public:
         io.close();
         return flag;
     };
+
     /*
      * function query
      * return Value type and a bool
      * bool true refers to query ok
      * if fail, return a default Value and false
      * */
-    pair<Value,bool> query(Key K){
+    pair<bool,Value> query(Key K){
         fstream io(Filename,ios::binary|ios::in|ios::out);
         if(!io){cerr<<"query F open error"<<endl;}
 
@@ -124,13 +128,14 @@ public:
         io.read(reinterpret_cast<char*>(&P),sizeof(P));
         while(!io.eof()){
             if(K==P.first){
-                return make_pair(P.second,true);
+                return make_pair(true,P.second);
             }
             io.read(reinterpret_cast<char*>(&P),sizeof(P));
         }
         io.close();
-        return make_pair(Value(),false);
+        return make_pair(false,Value());
     };
+
     List<Value> range(Key K1,Key K2){
         fstream io(Filename,ios::binary|ios::in|ios::out);
         if(!io){cerr<<"query F open error"<<endl;}
@@ -151,6 +156,13 @@ public:
         return newList;
     };
 
+    void clear(){
+        ofstream out;
+        out.open("tmp", ios::trunc | ios::binary);
+        out.close();
+        out.open(Filename, ios::trunc | ios::binary);
+        out.close();
+    }
 public:
     database_test(const string &F): Filename(F) {
         ofstream out1;
