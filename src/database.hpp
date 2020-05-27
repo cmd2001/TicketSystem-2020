@@ -13,6 +13,7 @@ public:
     };
     iterator begin() const {return iterator();}
     iterator end() const {return iterator();}
+    void push_back(const T &x) {}
     size_t size() const {return 0;}
 };
 

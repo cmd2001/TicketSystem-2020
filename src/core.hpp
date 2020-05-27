@@ -3,119 +3,19 @@
 
 #include "database.hpp"
 #include "exceptions.hpp"
+#include "tools.hpp"
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
 #include <cmath>
+
 using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
 
 namespace MLJ {
-
-// 按照ch分隔字符串，参考python中的 a = s.split(' ');
-static void split(const string &src, string *arg, int &cnt, const char &ch) {
-    int i;
-    cnt = i = 0;
-    while(i < src.size() && src[i] == ch) ++i;
-    for(; i < src.size(); ++i) {
-        if(src[i] == ch) {
-            while(i < src.size() && src[i] == ch) ++i;
-            if(i < src.size()) ++cnt;
-        }
-        if(i < src.size()) arg[cnt] = arg[cnt] + src[i];
-    }
-    ++cnt;
-}
-
-// TODO: 性能优化
-
-class datentime {
-public:
-    int date = 0;
-    int minu = 0;
-
-    // 时间 + 日期
-    datentime(const string &t = "", const string &d = "") {
-        if(d != "") {
-            int month = (d[1] - '0' - 6);
-            switch(month) {
-            case 6: date += 30; // Nov.
-            case 5: date += 31; // Oct.
-            case 4: date += 30; // Sept.
-            case 3: date += 31; // Aug.
-            case 2: date += 31; // July
-            case 1: date += 30; // June
-            case 0: date += 0; break;
-            default: date = 0;
-            }
-            date += (d[3] - '0') * 10 + d[4] - '0';
-        }
-        if(t != "") {
-            minu = 60 * ((t[0] - '0') * 10 + t[1] - '0') + (t[3] - '0') * 10 + t[4] - '0';
-        }
-    }
-    datentime operator+(const int &m) {
-        datentime ans;
-        ans.minu = minu + m;
-        ans.date += ans.minu / 1440; ans.minu = ans.minu % 1440; // FIXME:
-        return ans;
-    }
-    datentime operator-(const int &m) {
-        datentime ans;
-        ans.minu = minu - m;
-        while(ans.minu < 0) --ans.date, ans.minu += 1440;
-        return ans;
-    }
-    datentime operator+=(const int &m) {
-        minu += m;
-        while(minu >= 1440) ++date, minu -= 1440;
-        return *this;
-    }
-    datentime operator-=(const int &m) {
-        minu -= m;
-        while(minu < 0) --date, minu += 1440;
-        return *this;
-    }
-    inline int operator-(const datentime &o) {
-        return (date - o.date) * 1440 + minu - o.minu;
-    }
-    inline void add_date(const int &d) { date += d; } // 加日期
-    datentime plusdate(const int &d) { datentime ans = *this; ans.date += d; return ans; } // 返回加日期的datentime
-    inline bool operator<(const datentime &o) const {
-        return (date == o.date)? minu < o.minu : date < o.date;
-    }
-    inline bool operator>(const datentime &o) const {
-        return (date == o.date)? minu > o.minu : date > o.date;
-    }
-    inline bool operator==(const datentime &o) const {
-        return date == o.date && minu == o.minu;
-    }
-    inline string get_date() const {
-        if(date <= 30) return "06-" + std::to_string(date);
-        else if(date <= 61) return "07-" + std::to_string(date - 30);
-        else if(date <= 92) return "08-" + std::to_string(date - 61);
-        else if(date <= 122) return "09-" + std::to_string(date - 92);
-        else if(date <= 153) return "10-" + std::to_string(date - 122);
-        else if(date <= 183) return "11-" + std::to_string(date - 153);
-        else if(date <= 214) return "12-" + std::to_string(date - 183);
-        else throw illegal_date();
-    }
-
-    inline string get_time() const {
-        int h, m;
-        h = minu / 60; m = minu % 60;
-        if(h < 10) return "0" + std::to_string(h) + ":" + std::to_string(m);
-        else return std::to_string(h) + ":" + std::to_string(m);
-    }
-    inline string get() const {
-        return get_date() + " " + get_time();
-    }
-};
-
-
 
 /**各函数返回值
  * 0：失败
@@ -131,31 +31,117 @@ public:
     typedef std::string type_userName;
     typedef std::string type_trainID;
     typedef std::string type_stationName;
+    class datentime {
+    public:
+        int date = 0;
+        int minu = 0;
+
+        // 时间 + 日期
+        datentime(const string &t = "", const string &d = "") {
+            if(d != "") {
+                int month = (d[1] - '0' - 6);
+                switch(month) {
+                    case 6: date += 30; // Nov.
+                    case 5: date += 31; // Oct.
+                    case 4: date += 30; // Sept.
+                    case 3: date += 31; // Aug.
+                    case 2: date += 31; // July
+                    case 1: date += 30; // June
+                    case 0: date += 0; break;
+                    default: date = 0;
+                }
+                date += (d[3] - '0') * 10 + d[4] - '0';
+            }
+            if(t != "") {
+                minu = 60 * ((t[0] - '0') * 10 + t[1] - '0') + (t[3] - '0') * 10 + t[4] - '0';
+            }
+        }
+        datentime operator+(const int &m) const {
+            datentime ans;
+            ans.minu = minu + m;
+            ans.date += ans.minu / 1440; ans.minu = ans.minu % 1440; // FIXME:
+            return ans;
+        }
+        datentime operator-(const int &m) const {
+            datentime ans;
+            ans.minu = minu - m;
+            while(ans.minu < 0) --ans.date, ans.minu += 1440;
+            return ans;
+        }
+        datentime operator+=(const int &m) {
+            minu += m;
+            while(minu >= 1440) ++date, minu -= 1440;
+            return *this;
+        }
+        datentime operator-=(const int &m) {
+            minu -= m;
+            while(minu < 0) --date, minu += 1440;
+            return *this;
+        }
+        int operator-(const datentime &o) const {
+            return (date - o.date) * 1440 + minu - o.minu;
+        }
+        void add_date(const int &d) { date += d; } // 加日期
+        datentime plusdate(const int &d) const { datentime ans = *this; ans.date += d; return ans; } // 返回加日期的datentime
+        inline bool operator<(const datentime &o) const {
+            return date == o.date ? minu < o.minu : date < o.date;
+        }
+        inline bool operator>(const datentime &o) const {
+            return date == o.date ? minu > o.minu : date > o.date;
+        }
+        inline bool operator==(const datentime &o) const {
+            return date == o.date && minu == o.minu;
+        }
+        inline string get_date() const {
+            string ret;
+            int data = date;
+            if(date <= 30) ret =  "06-";
+            else if(date <= 61) ret = "07-", data -= 30;
+            else if(date <= 92) ret = "08-", data -= 61;
+            else if(date <= 122) ret = "09-", data -= 92;
+            else if(date <= 153) ret = "10-", data -= 122;
+            else if(date <= 183) ret = "11-", data -= 153;
+            else if(date <= 214) ret =  "12-", data -= 183;
+            else throw illegal_date();
+            return ret + (data < 10 ? "0" : "") + std::to_string(data);
+        }
+
+        inline string get_time() const {
+            int h, m;
+            h = minu / 60; m = minu % 60;
+            return (h < 10 ? "0" : "") + std::to_string(h) + (m < 10 ? ":0" : ":") + std::to_string(m);
+        }
+        inline string get() const {
+            return get_date() + " " + get_time();
+        }
+    };
     class type_user {
-        friend std::ostream &operator<<(std::ostream &os, const type_user &a) {
+        friend std::ostream& operator << (std::ostream &os, const type_user &a) {
             os << a.userName << " " << a.name << " " << a.mailAddr << " " << a.privilege;
             return os;
         }
-        friend bool operator==(const type_user &a, const type_user &b) {
+        friend bool operator == (const type_user &a, const type_user &b) {
             return !(strcmp(a.userName, b.userName) || strcmp(a.password, b.password) || strcmp(a.name, b.name) || strcmp(a.mailAddr, b.mailAddr)) && a.privilege == b.privilege;
         }
     public:
         char userName[22];
         char password[32];
-        char name[12]; // 汉字
+        char name[22]; // 汉字
         char mailAddr[25];
         int privilege; // 0-10
 
         int orderNum; // 储存该用户订单的数量
         // type_user(const char *&_usrnm, const char *&_pswd, const char *&_nm, const char *&_mAddr, const int &_prvl)
-        type_user() { privilege = 0; orderNum = 0; }
-        type_user(const type_user &o) {
+        type_user() { privilege = 0; orderNum = 0; } // FIXME: memset 0?
+        type_user(const type_user &o) { *this = o; }
+        type_user &operator=(const type_user &o) {
             strcpy(userName, o.userName);
             strcpy(password, o.password);
             strcpy(name, o.name);
             strcpy(mailAddr, o.mailAddr);
             privilege = o.privilege;
             orderNum = o.orderNum;
+            return *this;
         }
     };
     typedef std::pair<bool, type_user> user_return;
@@ -183,7 +169,8 @@ public:
             memset(arriving, 0, sizeof(arriving));
             memset(leaving, 0, sizeof(leaving));
         }
-        type_train(const type_train &o) {
+        type_train(const type_train &o) { *this = o; }
+        type_train &operator=(const type_train &o) {
             strcpy(trainID, o.trainID);
             stationNum = o.stationNum;
             for(int i = 0; i < stationNum; ++i) {
@@ -198,6 +185,7 @@ public:
             saleDate[0] = o.saleDate[0]; saleDate[1] = o.saleDate[1];
             type = o.type;
             startdate = o.startdate;
+            return *this;
         }
         inline bool operator==(const type_train &o) const {
             return strcmp(trainID, o.trainID) == 0 && startdate == o.startdate;
@@ -223,9 +211,11 @@ public:
     public:
         char stationName[22];
         datentime startTime;
-        type_stationName_startTime(const type_stationName_startTime &o) {
+        type_stationName_startTime (const type_stationName_startTime &o) { *this = o; }
+        type_stationName_startTime &operator=(const type_stationName_startTime &o) {
             strcpy(stationName, o.stationName);
             startTime = o.startTime;
+            return *this;
         }
         type_stationName_startTime(const char *_n, const datentime &_t) {
             strcpy(stationName, _n);
@@ -253,9 +243,11 @@ public:
     public:
         char userName[22];
         int ID = 0;
-        type_userName_orderID(const type_userName_orderID &o) {
+        type_userName_orderID (const type_userName_orderID &o) { *this = o; }
+        type_userName_orderID &operator=(const type_userName_orderID &o) {
             strcpy(userName, o.userName);
             ID = o.ID;
+            return *this;
         }
         type_userName_orderID(const char *_n, const int &_id) {
             strcpy(userName, _n);
@@ -268,15 +260,15 @@ public:
     };
     enum Ordertype { success, pending, refunded };
     class type_order {
-        friend std::ostream &operator<<(std::ostream &os, const type_order &a) {
-            switch(a._type) {
-            case success: os << "[success] "; break;
-            case pending: os << "[pending] "; break;
-            case refunded: os << "[refunded]"; break;
-            }
-            os << a.trainID << " " << a.startS << " " << a.leavingTime.get() << " -> " << a.endS << " " << a.arrivingTime.get() << a.price << " " << a.num;
-            return os;
-        }
+        // friend std::ostream& operator << (std::ostream &os, const type_order &a) {
+        //     switch(a._type) {
+        //     case success: os << "[success] "; break;
+        //     case pending: os << "[pending] "; break;
+        //     case refunded: os << "[refunded]"; break;
+        //     }
+        //     os << a.trainID << " " << a.startS << " " << a.leavingTime.get() << " -> " << a.endS << " " << a.arrivingTime.get() << a.price << " " << a.num;
+        //     return os;
+        // }
     public:
         Ordertype _type;
         char userName[22];
@@ -292,17 +284,29 @@ public:
             strcpy(trainID, _t);
             strcpy(startS, _sS); strcpy(endS, _eS);
         }
-        type_order(const type_order &o) {
+        type_order (const type_order &o) { *this = o; }
+        type_order &operator=(const type_order &o) {
             _type = o._type;
             leavingTime = o.leavingTime; arrivingTime = o.arrivingTime;
             price = o.price; num = o.num;
             strcpy(userName, o.userName);
             strcpy(trainID, o.trainID);
             strcpy(startS, o.startS); strcpy(endS, o.endS);
+            return *this;
         }
         inline bool operator==(const type_order &o) const {
             return _type == o._type && strcmp(userName, o.userName) == 0 && strcmp(trainID, o.trainID) == 0
             && strcmp(startS, o.startS) == 0 && strcmp(endS, o.endS) == 0 && num == o.num;
+        }
+        inline string get() const {
+            string ans = "";
+            switch(_type) {
+            case success: ans = "[success] "; break;
+            case pending: ans = "[pending] "; break;
+            case refunded: ans = "[refunded]"; break;
+            }
+            ans += (string)trainID + " " + startS + " " + leavingTime.get() + " -> " + endS + " " + arrivingTime.get() + std::to_string(price) + " " + std::to_string(num);
+            return ans;
         }
     };
     typedef std::pair<bool, type_order> order_return;
@@ -319,7 +323,7 @@ public:
 
 // *************************************** User Operations **************************************
 
-    int add_user(const string* cmd, const int siz) {
+    string add_user(const string* cmd, const int &siz) {
         int i = 1;
         bool vis[6] = {0};
         type_user newuser;
@@ -371,18 +375,18 @@ public:
         if(First_User) First_User = 0, newuser.privilege = 10;
         else {
             if(!vis[0] || !vis[5]) throw illegal_arg();
-            if(!cur_u.first) return 0;
+            if(!cur_u.first) return "-1";
             user_return this_u = Users.query(username);
             if(!this_u.first) throw unknown_wrong();
             const int &pri = newuser.privilege;
-            if(pri < 0 || pri > 10 || pri >= this_u.second.privilege) return 0;
+            if(pri < 0 || pri > 10 || pri >= this_u.second.privilege) return "-1";
         }
 
         Users.insert(newuser.userName, newuser);
-        return 1;
+        return "0";
     }
 
-    int login(const string* cmd, const int siz) {
+    string login(const string* cmd, const int &siz) {
         int i = 1;
         bool vis[2] = {0};
         user_return this_u;
@@ -403,15 +407,16 @@ public:
             ++i;
         }
         for(int i = 0; i < 2; ++i) if(!vis[i]) throw illegal_arg();
-        if(!this_u.first) return 0;
-        if(given_pswd != this_u.second.password) return 0;
+        if(!this_u.first) return "-1";
+        if(given_pswd != this_u.second.password) return "-1";
 
         Cur_users.insert(this_u.second.userName, 0);
-        return 1;
+        return "0";
     }
 
-    int logout(const string* cmd, const int siz) {
-        int i = 1; bool vis = 0;
+    string logout(const string* cmd, const int &siz) {
+        int i = 1;
+        bool vis = 0;
         cur_return in_cur;
         string username;
         while(i < siz) {
@@ -426,14 +431,16 @@ public:
             ++i;
         }
         if(!vis) throw illegal_arg();
-        if(!in_cur.first) return 0;
+        if(!in_cur.first) return "-1";
 
         Cur_users.erase(username, 0);
-        return 1;
+        return "0";
     }
 
-    int query_profile(const string* cmd, const int siz) {
-        int i = 1; bool vis[2] = {0};
+    string query_profile(const string* cmd, const int &siz) {
+        string ans = "";
+        int i = 1;
+        bool vis[2] = {0};
         cur_return cur_u;
         user_return this_u, that_u;
         string username;
@@ -454,15 +461,17 @@ public:
             ++i;
         }
         for(int i = 0; i < 2; ++i) if(!vis[i]) throw illegal_arg();
-        if(!cur_u.first || !that_u.first) return 0;
+        if(!cur_u.first || !that_u.first) return "-1";
         this_u = Users.query(username);
-        if(strcmp(this_u.second.userName, that_u.second.userName) != 0 && this_u.second.privilege <= that_u.second.privilege) return 0;
-
-        cout << that_u.second << endl;
-        return 2;
+        if(strcmp(this_u.second.userName, that_u.second.userName) != 0 && this_u.second.privilege <= that_u.second.privilege) return "-1";
+        // 可查询当且仅当this_u权限大于that.u，或this_u和that_u是一个人
+        const type_user &u = that_u.second;
+        ans = (string)u.userName + " " + u.name + " " + u.mailAddr + " " + std::to_string(u.privilege);
+        return ans;
     }
 
-    int modify_profile(const string* cmd, const int siz) {
+    string modify_profile(const string* cmd, const int &siz) {
+        string ans = "";
         int i = 1; bool vis[6] = {0};
         cur_return cur_u;
         string cur_username;
@@ -510,27 +519,29 @@ public:
             ++i;
         }
         for(int i = 0; i < 2; ++i) if(!vis[i]) throw illegal_arg();
-        if(!cur_u.first || !that_u.first) return 0;
+        if(!cur_u.first || !that_u.first) return "-1";
         this_u = Users.query(cur_username);
         if(!this_u.first) throw unknown_wrong();
-        if(strcmp(this_u.second.userName, that_u.second.userName) != 0 && (this_u.second.privilege <= that_u.second.privilege || this_u.second.privilege <= newuser.privilege)) return 0;
-
+        if(strcmp(this_u.second.userName, that_u.second.userName) != 0 && (this_u.second.privilege <= that_u.second.privilege || this_u.second.privilege <= newuser.privilege)) return "-1";
+        // 可修改当且仅当this_u权限大于that.u，或this_u和that_u是一个人
         strcpy(newuser.userName, that_u.second.userName);
         if(!vis[2]) strcpy(newuser.password, that_u.second.password);
         if(!vis[3]) strcpy(newuser.name, that_u.second.name);
         if(!vis[4]) strcpy(newuser.mailAddr, that_u.second.mailAddr);
         if(!vis[5]) newuser.privilege = that_u.second.privilege;
-        cout << newuser << endl;
+        ans = (string)newuser.userName + " " + newuser.name + " " + newuser.mailAddr + " " + std::to_string(newuser.privilege);
         Users.modify(newuser.userName, that_u.second, newuser);
-        return 2;
+        return ans;
     }
 
 
 // *************************************** Train Operations **********************************************
 
-    int add_train(const string* cmd, const int siz) {
-        int i = 1; bool vis[10] = {0};
-        type_train newtrain; string tmp[100];
+    string add_train(const string* cmd, const int &siz) {
+        int i = 1;
+        bool vis[10] = {0};
+        type_train newtrain;
+        string tmp[100];
         int travelTimes[100], stopoverTimes[100];
         while(i < siz) {
             if(i == siz - 1) throw illegal_arg();
@@ -601,7 +612,7 @@ public:
             ++i;
         }
         for(int i = 0; i < 10; ++i) if(!vis[i]) throw illegal_arg();
-        if(Trains_unreleased.query(newtrain.trainID).first) return 0; // 已用的ID，操作失败
+        if(Trains_unreleased.query(newtrain.trainID).first) return "-1"; // 已用的ID，操作失败
         newtrain.arriving[0] = newtrain.leaving[0] = newtrain.startTime;
         for(int i = 1; i < newtrain.stationNum; ++i) {
             newtrain.arriving[i] = newtrain.leaving[i - 1] + travelTimes[i - 1];
@@ -609,11 +620,11 @@ public:
         }
         newtrain.init();
         Trains_unreleased.insert(newtrain.trainID, newtrain);
-        return 1;
+        return "0";
     }
 
     // 把Train_unreleased移到Train中，并添加Database_stations
-    int release_train(const string* cmd, const int siz) {
+    string release_train(const string* cmd, const int &siz) {
         int i = 1; bool vis = 0;
         string trainID;
         train_return this_t;
@@ -628,7 +639,7 @@ public:
             ++i;
         }
         this_t = Trains_unreleased.query(trainID);
-        if(!this_t.first) return 0;
+        if(!this_t.first) return "-1";
 
         type_train &t = this_t.second;
         // t.init(); // 售票初始化
@@ -647,10 +658,11 @@ public:
             everyday_starttime.add_date(1);
         }
         Trains_unreleased.erase(t.trainID, t); // 从unreleased列表删除
-        return 1;
+        return "0";
     }
 
-    int query_train(const string* cmd, const int siz) {
+    string query_train(const string* cmd, const int &siz) {
+        string ans = "";
         int i = 1; bool vis[2] = {0};
         string trainID;
         datentime query_date;
@@ -673,23 +685,24 @@ public:
         this_t = Trains.query(trainID + '#' + query_date.get_date());
         if(!this_t.first) {
             this_t = Trains_unreleased.query(trainID);
-            if(!this_t.first || this_t.second.saleDate[0] > query_date || this_t.second.saleDate[1] < query_date) return 0;
+            if(!this_t.first || this_t.second.saleDate[0] > query_date || this_t.second.saleDate[1] < query_date) return "-1";
         }
-        type_train &t = this_t.second;
-        cout << t.trainID << " " << t.type << endl;
+        const type_train &t = this_t.second;
+        ans = (string)t.trainID + " " + t.type;
         for(int i = 0; i < t.stationNum; ++i) {
-            cout << t.stations[i] << " ";
-            if(i == 0) cout << "xx-xx xx:xx ";
-            else cout << t.arriving[i].plusdate(query_date.date).get() << " ";
-            cout << "-> ";
-            if(i == t.stationNum - 1) cout << "xx-xx xx:xx ";
-            else cout << t.leaving[i].plusdate(query_date.date).get() << " ";
-            cout << t.pre_prices[i] << " " << t.seats[i] << endl;
+            ans += "\n";
+            ans += (string)t.stations[i] + " ";
+            if(i == 0) ans += "xx-xx xx:xx ";
+            else ans += t.arriving[i].plusdate(query_date.date).get() + " ";
+            ans += "-> ";
+            if(i == t.stationNum - 1) ans += "xx-xx xx:xx ";
+            else ans += t.leaving[i].plusdate(query_date.date).get() + " ";
+            ans += std::to_string(t.pre_prices[i]) + " " + std::to_string(t.seats[i]);
         }
-        return 2;
+        return ans;
     }
 
-    int delete_train(const string* cmd, const int siz) {
+    string delete_train(const string* cmd, const int &siz) {
         int i = 1; bool vis = 0;
         string trainID;
         train_return this_t;
@@ -704,12 +717,13 @@ public:
             ++i;
         }
         this_t = Trains_unreleased.query(trainID);
-        if(!this_t.first) return 0;
+        if(!this_t.first) return "-1";
         Trains_unreleased.erase(trainID, this_t.second);
-        return 1;
+        return "0";
     }
 
-    int query_ticket(const string* cmd, const int siz) {
+    string query_ticket(const string* cmd, const int &siz) {
+        string ans = "";
         int i = 1; bool vis[4] = {0};
         string startS, endS;
         datentime date;
@@ -746,7 +760,8 @@ public:
         List<std::pair<type_trainID, int>> st; List<std::pair<type_trainID, int>>::iterator it;
         st = Database_stations.range(type_stationName_startTime(startS.c_str(), date), type_stationName_startTime(startS.c_str(), date + 1439));
         train_return this_t;
-        type_train_tnc *list = new type_train_tnc[st.size()]; int cnt = 0;
+        type_train_tnc *list = new type_train_tnc[st.size()]; // 此处有new
+        int cnt = 0;
         for(it = st.begin(); it != st.end(); ++it) {
             this_t = Trains.query((*it).first);
             if(!this_t.first) throw unknown_wrong();
@@ -759,16 +774,16 @@ public:
                 break;
             }
         }
-        sort(list, flag, way); // TODO: sort函数实现
-        cout << cnt << endl;
-        for(int i = 0; i < cnt; ++i) cout << list[i].out << endl;
+        if(flag) MLJ::sort(list, list + cnt, cmp_cost, quicksort);
+        else MLJ::sort(list, list + cnt, cmp_time, quicksort);
+        ans = std::to_string(cnt);
+        for(int i = 0; i < cnt; ++i) ans += "\n" + list[i].out;
         delete [] list;
-        return 2;
-        // startS.append("#"); startS.append(date.get_date());
-        // endS.append("#"); endS.append(date.get_date)
+        return ans;
     }
 
-    int query_transfer(const string* cmd, const int siz) {
+    string query_transfer(const string* cmd, const int &siz) {
+        string ans = "";
         int i = 1; bool vis[4] = {0};
         string startS, endS;
         datentime date;
@@ -803,7 +818,8 @@ public:
         // TODO:
     }
 
-    int buy_ticket(const string* cmd, const int siz) {
+    string buy_ticket(const string* cmd, const int &siz) {
+        string ans = "";
         int i = 1; bool vis[7] = {0}, flag = 0;
         type_order o;
         datentime date;
@@ -851,45 +867,49 @@ public:
             ++i;
         }
         for(int i = 0; i < 6; ++i) if(!vis[i]) throw illegal_arg();
-        if(!cur_u.first) return 0;
+        if(!cur_u.first) return "-1";
         this_u = Users.query(o.userName); // 查一下该用户的信息
         if(!this_u.first) throw unknown_wrong();
         train_return this_t = Trains.query((string)o.trainID + "#" + date.get_date());
-        if(!this_t.first) return 0;
-        type_train t = this_t.second; // 这里是复制，因为之后要modify这个车次的信息（seats）
+        if(!this_t.first) return "-1";
+        type_train t = this_t.second; // 这里是拷贝而非引用，因为之后要modify这个车次的信息（seats）
         int p = 0, q = 0;
         for(int i = 0; i < t.stationNum; ++i) {
             if(o.startS == t.stations[i]) {
-                if(q) return 0;
+                if(q) return "-1";
                 else p = i;
             }
             if(o.endS == t.stations[i]) {
-                if(!p) return 0;
+                if(!p) return "-1";
                 q = i;
             }
         }
-        if(!p || !q) return 0;
+        if(!p || !q) return "-1";
 
         int seats_available = t.query(p, q);
         if(seats_available < o.num) {
             if(flag) { // 加入候补队列
-                cout << "queue" << endl;
+                ans = "queue";
                 // TODO:
-            } else return 0;
+            } else return "-1";
         } else {
             o.price = t.pre_prices[q] - t.pre_prices[p];
             o.leavingTime = t.leaving[p].plusdate(date.date);
             o.arrivingTime = t.arriving[q].plusdate(date.date);
             long long total_cost = (long long)o.num * o.price;
-            cout << total_cost << endl;
+            type_user u = this_u.second;
             Database_orders.insert(type_userName_orderID(o.userName, ++this_u.second.orderNum), o); // ++该用户的orderNum
+            Users.modify(this_u.second.userName, u, this_u.second); // 更新该用户的orderNum
             t.buy(p, q, o.num); // 改变座位数
-            Trains.modify((string)o.trainID + "#" + date.get_date(), this_t.second, t);
+            Trains.modify((string)o.trainID + "#" + date.get_date(), this_t.second, t); // 更新该车次的信息
+
+            ans = std::to_string(total_cost);
         }
-        return 2;
+        return ans;
     }
 
-    int query_order(const string* cmd, const int siz) {
+    string query_order(const string* cmd, const int &siz) {
+        string ans = "";
         int i = 1; bool vis = 0;
         cur_return cur_u;
         user_return this_u;
@@ -906,18 +926,18 @@ public:
             ++i;
         }
         if(!vis) throw illegal_arg();
-        if(!cur_u.first) return 0;
+        if(!cur_u.first) return "-1";
         this_u = Users.query(username);
         if(!this_u.first) throw unknown_wrong();
         List<type_order> orders = Database_orders.range(type_userName_orderID(this_u.second.userName, this_u.second.orderNum), type_userName_orderID(this_u.second.userName, 1));
-        cout << this_u.second.orderNum;
+        ans = std::to_string(this_u.second.orderNum);
         for(List<type_order>::iterator it = orders.begin(); it != orders.end(); ++it) {
-            cout << *it << endl;
+            ans += (string)"\n" + (*it).get();
         }
-        return 2;
+        return ans;
     }
 
-    int refund_ticket(const string* cmd, const int siz) {
+    string refund_ticket(const string* cmd, const int &siz) {
         int i = 1; bool vis[2] = {0};
         string username;
         int which_order = 1;
@@ -939,21 +959,21 @@ public:
             ++i;
         }
         if(!vis[0]) throw illegal_arg();
-        if(!cur_u.first) return 0;
+        if(!cur_u.first) return "-1";
         this_u = Users.query(username);
         if(!this_u.first) throw unknown_wrong();
         which_order = this_u.second.orderNum - which_order + 1;
         order_return this_o = Database_orders.query(type_userName_orderID(this_u.second.userName, which_order));
-        if(!this_o.first) return 0;
-        if(this_o.second._type == refunded) return 0; // 已经退票了
+        if(!this_o.first) return "-1";
+        if(this_o.second._type == refunded) return "-1"; // 已经退票了
 
         type_order o = this_o.second; o._type = refunded;
         Database_orders.modify(type_userName_orderID(this_u.second.userName, which_order), this_o.second, o);
         // TODO: queue中的操作
-        return 1;
+        return "0";
     }
 
-    int clean(const string* cmd, const int siz) {
+    string clean(const string* cmd, const int &siz) {
         First_User = 1;
         Users.clear();
         Cur_users.clear();
@@ -961,7 +981,7 @@ public:
         Trains.clear();
         Database_stations.clear();
         Database_orders.clear();
-        return 1;
+        return "0";
     }
 };
 

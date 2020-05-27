@@ -4,9 +4,9 @@
 
 暂定将将整体项目分为三个子部分，分别为：(后面填对应GitHub id)
 
-前端&文档(人员A)：
+前端&文档(人员A)：Amagi_Yukisaki
 
-数据库(B+树)(人员B)：
+数据库(B+树)(人员B)：battlin6
 
 后端程序(除B+树外全部算法)(人员C)：aik2mlj
 
@@ -50,6 +50,8 @@ B --> F(前端GUI)
 `query(Key)`：查询`Key`对应的`Value`。**保证此时的Key不出现重复！**返回`std::pair<bool, typeof Value>`，表示查询是否成功及查询到的`Value`值。失败条件同上。
 
 `range(Key1, Key2)`：查询区间`[Key1, Key2]`对应的全部`Value`，返回`List<typeof Value>`，表示查询到的值。**其中`List`为自定义的列表类，支持迭代器遍历。**（为什么不使用`stl`？因为不允许。为什么能用`std::pair`？因为`std::pair`在`iostream`中有包含）**为什么不返回对应的`Key`？因为可以保证Key在Value中已被包含。**（这一点在core.hpp的实现中将会提及）
+
+`clear()`：清空该b+树的全部信息
 
 ### `core.hpp`
 
