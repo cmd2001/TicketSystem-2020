@@ -9,6 +9,11 @@
 #include "../include/List.h"
 #include <fstream>
 
+template <typename Key>
+bool Isequal(const Key&a,const Key &b){
+    return !((a<b)||(b<a));
+}
+
 template <typename Key,typename Value>
 class database_test{
 private:
@@ -63,7 +68,7 @@ public:
         bool flag=false;
         in.read(reinterpret_cast<char*>(&P),sizeof(P));
         while(!in.eof()){
-            if(K==P.first&&V==P.second){
+            if(Isequal(K,P.first)&&V==P.second){
                 flag=true;
                 in.read(reinterpret_cast<char*>(&P),sizeof(P));
                 continue;
@@ -100,7 +105,7 @@ public:
         size_t pos=0;
         io.read(reinterpret_cast<char*>(&P),sizeof(P));
         while(!io.eof()){
-            if(K==P.first&&OldV==P.second){
+            if(Isequal(K,P.first)&&OldV==P.second){
                 P.second=NewV;
                 io.seekp(pos*sizeof(P));
                 io.write(reinterpret_cast<char*>(&P),sizeof(P));
@@ -127,7 +132,7 @@ public:
         Pair P;
         io.read(reinterpret_cast<char*>(&P),sizeof(P));
         while(!io.eof()){
-            if(K==P.first){
+            if(Isequal(K,P.first)){
                 return make_pair(true,P.second);
             }
             io.read(reinterpret_cast<char*>(&P),sizeof(P));
@@ -146,7 +151,7 @@ public:
         bool flag=false;
         io.read(reinterpret_cast<char*>(&P),sizeof(P));
         while(!io.eof()){
-            if(K1<=P.first&&K2>=P.first){
+            if((K1<P.first||Isequal(K1,P.first))&&(P.first<K2||Isequal(K2,P.first))){
                 newList.push_back(P.second);
             }
             io.read(reinterpret_cast<char*>(&P),sizeof(P));
