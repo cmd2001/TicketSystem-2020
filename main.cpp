@@ -18,6 +18,16 @@ int main(){
     std::cout<<a.query(1).first<<" "<<a.query(1).second<<std::endl;
     List<int> test=a.range(1,6);
     std::cout<<test<<std::endl;
+    std::cout<<test.size()<<std::endl;
     std::cout<<"???"<<std::endl;
+    List<int>::iterator x=test.begin();
+    std::cout<<*x<<std::endl;
+    x++;
+    std::cout<<*x<<std::endl;
+    List<int>::iterator y=test.end();
+    --y;
+    std::cout<<*y<<std::endl;
+    --y;
+    std::cout<<(x==y)<<std::endl;
     a.clear();
 }
