@@ -63,6 +63,7 @@ public:
     private:
         Node* nowNode;
     public:
+        iterator() = default;
         iterator(const iterator &other)= default;
         iterator(Node *_Node):nowNode(_Node){}
     public:

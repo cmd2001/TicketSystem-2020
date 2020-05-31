@@ -10,7 +10,7 @@
 #include <fstream>
 
 template <typename Key>
-bool Isequal(const Key&a,const Key &b){
+inline bool Isequal(const Key &a,const Key &b){
     return !((a<b)||(b<a));
 }
 
