@@ -53,6 +53,8 @@ B --> F(前端GUI)
 
 `clear()`：清空名为`Filename`的数据库文件。
 
+`empty()`：返回bool类型，表示该数据库是否为空。
+
 ### `core.hpp`
 
 实现`Ticket`类。

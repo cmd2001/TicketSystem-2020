@@ -24,8 +24,8 @@ namespace MLJ {
  * 异常抛出与操作失败分离
  */
 class Ticket {
-    bool First_User;
-    static inline bool is_letter(const char &ch) { return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'); }
+    // bool First_User;
+    // static inline bool is_letter(const char &ch) { return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'); }
 
 public:
     typedef class wrapped_cstr {
@@ -133,7 +133,7 @@ public:
         char userName[22];
         char password[32];
         char name[22]; // 汉字
-        char mailAddr[25];
+        char mailAddr[32];
         int privilege; // 0-10
 
         int orderNum; // 储存该用户订单的数量
@@ -337,7 +337,7 @@ public:
         Trains_unreleased("file_trains_unreleased"), Trains("file_trains"),
         Database_stations("file_stations"),
         Database_orders("file_orders") {
-        First_User = 1;
+        // First_User = 1;
     }
 
 // *************************************** User Operations **************************************
@@ -359,14 +359,12 @@ public:
             } else if(cmd[i] == "-u") {
                 if(!vis[1]) {
                     vis[1] = 1;
-                    if(cmd[++i].size() <= 20 && is_letter(cmd[i][0])) strcpy(newuser.userName, cmd[i].c_str());
-                    else throw bad_para();
+                    strcpy(newuser.userName, cmd[++i].c_str());
                 } else throw illegal_arg();
             } else if(cmd[i] == "-p") {
                 if(!vis[2]) {
                     vis[2] = 1;
-                    if(cmd[++i].size() >= 6 && cmd[i].size() <= 30) strcpy(newuser.password, cmd[i].c_str());
-                    else throw bad_para();
+                    strcpy(newuser.password, cmd[++i].c_str());
                 } else throw illegal_arg();
             } else if(cmd[i] == "-n") {
                 if(!vis[3]) {
@@ -391,8 +389,10 @@ public:
             ++i;
         }
         for(int i = 1; i < 5; ++i) if(!vis[i]) throw illegal_arg();
-        if(First_User) First_User = 0, newuser.privilege = 10;
-        else {
+        if(Users.empty()) { // First user
+            newuser.privilege = 10;
+            // cout << "First user!" << endl;
+        } else {
             if(!vis[0] || !vis[5]) throw illegal_arg();
             if(!cur_u.first) return "-1";
             user_return this_u = Users.query(type_userName(username));
@@ -408,14 +408,17 @@ public:
     string login(const string* cmd, const int &siz) {
         int i = 1;
         bool vis[2] = {0};
+        cur_return cur_u;
         user_return this_u;
+        string username;
         string given_pswd;
         while(i < siz) {
             if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-u") {
                 if(!vis[0]) {
                     vis[0] = 1;
-                    this_u = Users.query(cmd[++i]);
+                    username = cmd[++i];
+                    this_u = Users.query(username);
                 } else throw illegal_arg();
             } else if(cmd[i] == "-p") {
                 if(!vis[1]) {
@@ -428,6 +431,8 @@ public:
         for(int i = 0; i < 2; ++i) if(!vis[i]) throw illegal_arg();
         if(!this_u.first) return "-1";
         if(given_pswd != this_u.second.password) return "-1";
+        cur_u = Cur_users.query(username);
+        if(cur_u.first) return "-1";
 
         Cur_users.insert(this_u.second.userName, 0);
         return "0";
@@ -512,8 +517,7 @@ public:
             } else if(cmd[i] == "-p") {
                 if(!vis[2]) {
                     vis[2] = 1;
-                    if(cmd[++i].size() >= 6 && cmd[i].size() <= 30) strcpy(newuser.password, cmd[i].c_str());
-                    else throw bad_para();
+                    strcpy(newuser.password, cmd[++i].c_str());
                 } else throw illegal_arg();
             } else if(cmd[i] == "-n") {
                 if(!vis[3]) {
@@ -543,13 +547,15 @@ public:
         if(!this_u.first) throw unknown_wrong();
         if(strcmp(this_u.second.userName, that_u.second.userName) != 0 && (this_u.second.privilege <= that_u.second.privilege || this_u.second.privilege <= newuser.privilege)) return "-1";
         // 可修改当且仅当this_u权限大于that.u，或this_u和that_u是一个人
+
         strcpy(newuser.userName, that_u.second.userName);
         if(!vis[2]) strcpy(newuser.password, that_u.second.password);
         if(!vis[3]) strcpy(newuser.name, that_u.second.name);
         if(!vis[4]) strcpy(newuser.mailAddr, that_u.second.mailAddr);
         if(!vis[5]) newuser.privilege = that_u.second.privilege;
+
         ans = (string)newuser.userName + " " + newuser.name + " " + newuser.mailAddr + " " + std::to_string(newuser.privilege);
-        Users.modify(newuser.userName, that_u.second, newuser);
+        if(!(newuser == that_u.second)) Users.modify(newuser.userName, that_u.second, newuser);
         return ans;
     }
 
@@ -781,6 +787,7 @@ public:
         List<std::pair<type_trainID, int>> st;
         List<std::pair<type_trainID, int>>::iterator it;
         st = Database_stations.range(type_stationName_startTime(startS.c_str(), date), type_stationName_startTime(startS.c_str(), date + 1439));
+        if(st.empty()) return "-1";
         train_return this_t;
         type_train_tnc *list = new type_train_tnc[st.size()]; // 此处有new
         int cnt = 0;
@@ -844,6 +851,7 @@ public:
         // 思路：枚举st车次经过的站点，枚举et逆向经过的站点，两者对应且符合时间先后则可行
         st = Database_stations.range(type_stationName_startTime(startS.c_str(), date), type_stationName_startTime(startS.c_str(), date + 1439));
         et = Database_stations.range(type_stationName_startTime(endS.c_str(), date), type_stationName_startTime(endS.c_str(), datentime("23:59", "12-31")));
+        if(st.empty() || et.empty()) return "0";
         train_return first_t, second_t;
         type_train_tnc choosed_transfer;
         for(it = st.begin(); it != st.end(); ++it) {
@@ -1036,7 +1044,7 @@ public:
     }
 
     string clean(const string* cmd, const int &siz) {
-        First_User = 1;
+        // First_User = 1;
         Users.clear();
         Cur_users.clear();
         Trains_unreleased.clear();
@@ -1044,6 +1052,11 @@ public:
         Database_stations.clear();
         Database_orders.clear();
         return "0";
+    }
+
+    string exit(const string* cmd, const int &siz) {
+        Cur_users.clear(); // 清空在线用户列表
+        return "bye";
     }
 };
 
