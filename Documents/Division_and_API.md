@@ -53,21 +53,23 @@ B --> F(前端GUI)
 
 `clear()`：清空名为`Filename`的数据库文件。
 
+`empty()`：返回bool类型，表示该数据库是否为空。
+
 ### `core.hpp`
 
 实现`Ticket`类。
 
 其中包含以下数据成员：
 
-`Database<type_username, type_user> Users(file_users);`
+`Database<type_username, type_user> Users("file_users");`
 
-`Database<type_username, type_username> Cur_users(file_cur_users);`
+`Database<type_username, type_username> Cur_users("file_cur_users");`
 
-`Database<type_trainID, type_train> Trains_unreleased(file_unreleased), Trains(file_trains);`
+`Database<type_trainID, type_train> Trains_unreleased("file_trains_unreleased"), Trains("file_trains");`
 
-`Database<type_stationName_startTime, type_trainID> Stations(file_statinNames);`
+`Database<type_stationName_startTime, type_trainID> Stations("file_stations");`
 
-`Database<type_userID_orderID, type_order> Orders(file_orders)`
+`Database<type_userID_orderID, type_order> Orders("file_orders")`
 
 `type_user`类中存储一个用户T的全部信息，`type_train`类中存储一次列车的全部信息。
 

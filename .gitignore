@@ -34,3 +34,5 @@
 .DS_Store
 */.DS_Store
 try.cpp
+test.py
+.vscode

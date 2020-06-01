@@ -6,11 +6,11 @@
 #include <cstring>
 #include <cmath>
 #include <string>
-#include "../include/List.h"
+#include "../include/List.hpp"
 #include <fstream>
 
 template <typename Key>
-bool Isequal(const Key&a,const Key &b){
+inline bool Isequal(const Key &a,const Key &b){
     return !((a<b)||(b<a));
 }
 
@@ -168,6 +168,13 @@ public:
         out.open(Filename, ios::trunc | ios::binary);
         out.close();
     }
+    bool empty() {
+        ifstream in(Filename, ios::binary | ios::in);
+        if(!in){cerr<<"erase F open error"<<endl;}
+        in.seekg(0, ios::end);
+        if(in.tellg() == 0) return true;
+        else return false;
+    }
 public:
     database_test(const string &F): Filename(F) {
         ofstream out1;
@@ -176,8 +183,8 @@ public:
         out1.close();
 
         ofstream out2;
-        out2.open(F, ios::trunc | ios::binary); //create Filename and clear
-        if (!out2) { cerr << "F create error" << endl; }
+        out2.open(F, ios::in | ios::binary); //create Filename and clear
+        if (!out2) { out2.open(F, ios::trunc | ios::binary); }
         out2.close();
     }
 };
