@@ -110,7 +110,6 @@ public:
                 io.seekp(pos*sizeof(P));
                 io.write(reinterpret_cast<char*>(&P),sizeof(P));
                 flag=true;
-                continue;
             }
             io.read(reinterpret_cast<char*>(&P),sizeof(P));
             pos++;
