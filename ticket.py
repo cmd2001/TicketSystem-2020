@@ -55,13 +55,13 @@ class Ticket:
         return
     def query_ticket(self, time, start, end, sort_param):
         """
-        :return: ((trainID, FROM, LEAVING_TIME, TO, ARRIVING_TIME, PRICE, SEAT)*)
+        :return: [(trainID, FROM, LEAVING_TIME, TO, ARRIVING_TIME, PRICE, SEAT)*]
         HAPPY_TRAIN 中院 08-17 05:24 -> 下院 08-17 15:24 514 1000
         """
         return
     def query_transfer(self, time, start, end, sort_param):
         """
-        :return: ((trainID, FROM, LEAVING_TIME, TO, ARRIVING_TIME, PRICE, SEAT)*2)
+        :return: [(trainID, FROM, LEAVING_TIME, TO, ARRIVING_TIME, PRICE, SEAT)*2]
         """
         return
     def buy_ticket(self, username, trainID, day, ffrom, to, number, que):
@@ -71,7 +71,7 @@ class Ticket:
         """
     def query_order(self, username):
         """
-        :return: ((status, trainID, FROM, LEAVING_TIME, TO, ARRIVING_TIME, PRICE, NUM)*)
+        :return: [(status, trainID, FROM, LEAVING_TIME, TO, ARRIVING_TIME, PRICE, NUM)*]
         # [pending] HAPPY_TRAIN 上院 08-17 05:24 -> 下院 08-17 15:24 628 500
         """
         return

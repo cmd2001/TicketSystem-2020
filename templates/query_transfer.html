@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Query Transfer</title>
+    <link href="../static/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+Query Transfer <br>
+    Current User: {{username}} <a href="/logout">Logout</a> <br>
+    {% for x in ret %}
+        {{x[0]}}    {{x[1]}}    {{x[2]}}    {{x[3]}}    {{x[4]}}    {{x[5]}}    {{x[6]}}    {{x[7]}}<br>
+    {% end for %}
+</body>
+
+</html>
