@@ -1,3 +1,6 @@
+# Virtual environment
+venv
+
 # Prerequisites
 *.d
 
