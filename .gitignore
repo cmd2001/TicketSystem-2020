@@ -39,3 +39,6 @@ venv
 try.cpp
 test.py
 .vscode
+.idea
+build
+cmake-build-debug

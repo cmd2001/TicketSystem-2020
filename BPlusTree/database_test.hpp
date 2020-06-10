@@ -110,7 +110,6 @@ public:
                 io.seekp(pos*sizeof(P));
                 io.write(reinterpret_cast<char*>(&P),sizeof(P));
                 flag=true;
-                continue;
             }
             io.read(reinterpret_cast<char*>(&P),sizeof(P));
             pos++;
@@ -172,8 +171,7 @@ public:
         ifstream in(Filename, ios::binary | ios::in);
         if(!in){cerr<<"erase F open error"<<endl;}
         in.seekg(0, ios::end);
-        if(in.tellg() == 0) return true;
-        else return false;
+        return in.tellg() == 0;
     }
 public:
     database_test(const string &F): Filename(F) {
@@ -183,7 +181,7 @@ public:
         out1.close();
 
         ofstream out2;
-        out2.open(F, ios::in | ios::binary); //create Filename and clear
+        out2.open(F, ios::in | ios::binary);
         if (!out2) { out2.open(F, ios::trunc | ios::binary); }
         out2.close();
     }

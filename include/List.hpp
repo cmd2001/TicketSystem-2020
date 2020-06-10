@@ -28,8 +28,35 @@ public:
         head->next=tail;
         tail->prev=head;
         curSize=0;
-    };
+    }
+    // List(const List &o): List() {
+    //     Node *p = o.head->next;
+    //     while(p != o.tail) {
+    //         Node *tmp = new Node;
+    //         tmp->value = p->value;
+    //         tmp->next = tail;
+    //         tmp->prev = tail->prev;
+    //         tail->prev->next = tmp;
+    //         tail->prev = tmp;
+    //     }
+    //     curSize = o.curSize;
+    // }
+    List(List &&o) {
+        head = o.head;
+        tail = o.tail;
+        curSize = o.curSize;
+        o.head = o.tail = nullptr;
+    }
+    List &operator=(List &&o) {
+        this->~List();
+        head = o.head;
+        tail = o.tail;
+        curSize = o.curSize;
+        o.head = o.tail = nullptr;
+        return *this;
+    }
     ~List(){
+        if(head == nullptr && tail == nullptr) return;
         Node *x=head->next;
         while(x!=tail){
             Node* tmp=x;
@@ -37,9 +64,10 @@ public:
             delete tmp;
         }
         curSize=0;
-        delete head,tail;
+        delete head;
+        delete tail;
     }
-    void push_back(K v){
+    void push_back(const K &v){
         auto news=new Node;
         news->value=v;
 

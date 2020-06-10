@@ -16,7 +16,7 @@ int main(){
     a.erase(1,1);
     std::cout<<a.query(5).first<<" "<<a.query(5).second<<std::endl;
     std::cout<<a.query(1).first<<" "<<a.query(1).second<<std::endl;
-    List<int> test=a.range(1,6);
+    List<int> test=a.range(-2,6000);
     std::cout<<test<<std::endl;
     std::cout<<test.size()<<std::endl;
     std::cout<<"???"<<std::endl;
@@ -29,5 +29,6 @@ int main(){
     std::cout<<*y<<std::endl;
     --y;
     std::cout<<(x==y)<<std::endl;
+    for(x = test.begin(); x != test.end(); ++x) std::cout << *x << " ";
     a.clear();
 }
