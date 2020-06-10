@@ -6,20 +6,31 @@
 </head>
 
 <body>
-    Welcome to Ticket System ~ <br>
-    Current User: {{username}} <a href="/logout">Logout</a> <br>
-    <a href="/query_profile">Query Profile</a> <br>
-    <a href="/add_user">Add User</a> <br>
-    <a href="/modify_profile">Modify Profile</a> <br>
-    <a href="/add_train">Add Train</a> <br>
-    <a href="/release_train">Release Train</a> <br>
-    <a href="/query_train">Query Train</a> <br>
-    <a href="/delete_train">Delete Train</a> <br>
-    <a href="/query_ticket">Query Ticket</a> <br>
-    <a href="/query_transfer">Query Transfer</a> <br>
-    <a href="/query_order">Query Order</a> <br>
-    <a href="/refund_ticket">Refund Ticket</a> <br>
-    <a href="/clean">Clean</a> <br>
+    <div class="col-lg-12">
+        <h2>Welcome Ticket System 2020~</h2>
+        {% if not flag %}
+            Current User: {{username}} <a href="/logout">Logout</a><br>
+            Manage Users:<br>
+            <a href="/query_profile"><button type="button" class="btn btn-primary">Query Profile</button></a>
+            <a href="/add_user"><button type="button" class="btn btn-primary">Add User</button></a>
+            <a href="/modify_profile"><button type="button" class="btn btn-primary">Modify Profile</button></a><br>
+            Manage Trains:<br>
+            <a href="/add_train"><button type="button" class="btn btn-info">Add Train</button></a>
+            <a href="/release_train"><button type="button" class="btn btn-info">Release Train</button></a>
+            <a href="/query_train"><button type="button" class="btn btn-info">Query Train</button></a>
+            <a href="/delete_train"><button type="button" class="btn btn-info">Delete Train</button></a><br>
+            Buy Tickets:<br>
+            <a href="/query_ticket"><button type="button" class="btn btn-success">Query Ticket</button></a>
+            <a href="/query_transfer"><button type="button" class="btn btn-success">Query Transfer</button></a>
+            <a href="/query_order"><button type="button" class="btn btn-success">Query Order</button></a>
+            <a href="/refund_ticket"><button type="button" class="btn btn-success">Refund Ticket</button></a><br>
+            Clean System:<br>
+            <a href="/clean"><button type="button" class="btn btn-danger">Clean</button></a><br>
+        {% else %}
+            Please Login First ! <br>
+            <a href="/login"><button type="button" class="btn btn-primary">Login</button></a>
+        {% endif %}
+    </div>
 </body>
 
 </html>

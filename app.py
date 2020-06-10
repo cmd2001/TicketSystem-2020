@@ -49,7 +49,7 @@ def getUsername():
 def root():
     userID = request.cookies.get('id')
     if not checkCookie():
-        return render_template('root_login.html')
+        return render_template('root.html', flag = 1)
     return render_template('root.html', username = userPool.query(userID))
 
 
