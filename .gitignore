@@ -42,3 +42,5 @@ test.py
 .idea
 build
 cmake-build-debug
+temp
+!data/
