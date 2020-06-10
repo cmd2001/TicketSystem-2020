@@ -34,7 +34,7 @@ venv
 *.out
 *.app
 
-# Macos
+# Mac Os
 .DS_Store
 */.DS_Store
 
