@@ -34,13 +34,14 @@ venv
 *.out
 *.app
 
+# Mac Os
 .DS_Store
 */.DS_Store
-try.cpp
-test.py
+
+# IDE
 .vscode
 .idea
-build
-cmake-build-debug
-temp
-!data/
+
+# gitignore
+.gitignore
+
