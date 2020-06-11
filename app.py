@@ -21,7 +21,7 @@ def login():
     form = request.form.to_dict()
     check = ticket.login(form['username'], form['password'])
     if not check:
-        return render_template('form_alert.html',flag = True, message = 'Failed', form = Constant.login_form, form_path = '/login', title = 'User Login')
+        return render_template('form.html',flag = True, message = 'Failed', form = Constant.login_form, form_path = '/login', title = 'User Login')
     else:
         ret = make_response(redirect('/'))
         ret.set_cookie('id', userPool.push(form['username']))
@@ -61,9 +61,9 @@ def add_user():
     form = request.form.to_dict()
     ret = ticket.add_user(getUsername(), form['username'], form['password'], form['name'], form['mailAddr'], form['privilege'])
     if ret:
-        return render_template('form_alert.html', username = getUsername(), message = 'Succeed!', form = Constant.add_user_form, form_path = '/add_user', title = 'Add User')
+        return render_template('form.html', username = getUsername(), message = 'Succeed!', form = Constant.add_user_form, form_path = '/add_user', title = 'Add User')
     else:
-        return render_template('form_alert.html', username = getUsername(), message = 'Failed!', form = Constant.add_user_form, form_path = '/add_user', title = 'Add User')
+        return render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.add_user_form, form_path = '/add_user', title = 'Add User')
 
 @app.route('/query_profile', methods=("GET", "POST"))
 def query_profile():
@@ -80,9 +80,9 @@ def modify_profile():
     form = request.form.to_dict()
     ret = ticket.modify_profile(getUsername(), form['username'], form['password'], form['name'], form['mailAddr'], form['privilege'])
     if ret:
-        return render_template('form_alert.html', username = getUsername(), message = 'Succeed!', form = Constant.modify_profile_form, form_path = '/modify_profile', title = 'Modify Profile')
+        return render_template('form.html', username = getUsername(), message = 'Succeed!', form = Constant.modify_profile_form, form_path = '/modify_profile', title = 'Modify Profile')
     else:
-        return render_template('form_alert.html', username = getUsername(), message = 'Failed!', form = Constant.modify_profile_form, form_path = '/modify_profile', title = 'Modify Profile')
+        return render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.modify_profile_form, form_path = '/modify_profile', title = 'Modify Profile')
 
 @app.route('/add_train', methods=("GET", "POST"))
 def add_train():
@@ -92,9 +92,9 @@ def add_train():
     ret = ticket.add_train(form['trainID'], len(form['stations'].split('|')), form['seatNum'], form['stations'],
                            form['prices'], form['startTime'], form['travelTimes'], form['stopoverTimes'], form['saleDate'], form['type'])
     if ret:
-        return render_template('form_alert.html', username = getUsername(), message = 'Succeed!', form = Constant.add_train_form, form_path = '/add_train', title = 'Add Train')
+        return render_template('form.html', username = getUsername(), message = 'Succeed!', form = Constant.add_train_form, form_path = '/add_train', title = 'Add Train')
     else:
-        return render_template('form_alert.html', username = getUsername(), message = 'Failed!', form = Constant.add_train_form, form_path = '/add_train', title = 'Add Train')
+        return render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.add_train_form, form_path = '/add_train', title = 'Add Train')
 
 @app.route('/release_train', methods=("GET", "POST"))
 def release_train():
@@ -103,9 +103,9 @@ def release_train():
     form = request.form.to_dict()
     ret = ticket.release_train(form['trainID'])
     if ret:
-        return render_template('form_alert.html', username = getUsername(), message = 'Succeed!', form = Constant.release_train_form, form_path = '/release_train', title = 'Release Train')
+        return render_template('form.html', username = getUsername(), message = 'Succeed!', form = Constant.release_train_form, form_path = '/release_train', title = 'Release Train')
     else:
-        return render_template('form_alert.html', username = getUsername(), message = 'Failed!', form = Constant.release_train_form, form_path = '/release_train', title = 'Release Train')
+        return render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.release_train_form, form_path = '/release_train', title = 'Release Train')
 
 @app.route('/query_train', methods=("GET", "POST"))
 def query_train():
@@ -122,9 +122,9 @@ def delete_train():
     form = request.form.to_dict()
     ret = ticket.delete_train(form['trainID'])
     if ret:
-        return render_template('form_alert.html', username = getUsername(), message = 'Succeed!', form = Constant.delete_train_form, form_path = '/delete_train', title = 'Delete Train')
+        return render_template('form.html', username = getUsername(), message = 'Succeed!', form = Constant.delete_train_form, form_path = '/delete_train', title = 'Delete Train')
     else:
-        return render_template('form_alert.html', username = getUsername(), message = 'Failed!', form = Constant.delete_train_form, form_path = '/delete_train', title = 'Delete Train')
+        return render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.delete_train_form, form_path = '/delete_train', title = 'Delete Train')
 
 @app.route('/query_ticket', methods=("GET", "POST"))
 def query_ticket():
@@ -149,11 +149,11 @@ def buy_ticket():
     form = request.form.to_dict()
     ret = ticket.buy_ticket(getUsername(), form['trainID'], form['day'], form['ffrom'], form['to'], form['number'], form['que'])
     if ret == -1:
-        return render_template('form_alert.html', username = getUsername(), message = 'Failed!', form = Constant.buy_ticket_form, form_path = '/buy_ticket', title = 'Buy Ticket')
+        return render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.buy_ticket_form, form_path = '/buy_ticket', title = 'Buy Ticket')
     elif ret == 'queue':
-        return render_template('form_alert.html', username = getUsername(), message = 'Queuing', form = Constant.buy_ticket_form, form_path = '/buy_ticket', title = 'Buy Ticket')
+        return render_template('form.html', username = getUsername(), message = 'Queuing', form = Constant.buy_ticket_form, form_path = '/buy_ticket', title = 'Buy Ticket')
     else:
-        return render_template('form_alert.html', username = getUsername(), message = ('Total Cost: ' + str(ret)), form = Constant.buy_ticket_form, form_path = '/buy_ticket', title = 'Buy Ticket')
+        return render_template('form.html', username = getUsername(), message = ('Total Cost: ' + str(ret)), form = Constant.buy_ticket_form, form_path = '/buy_ticket', title = 'Buy Ticket')
 
 @app.route('/query_order')
 def query_order():
@@ -167,16 +167,32 @@ def refund_ticket():
     form = request.form.to_dict()
     ret = ticket.refund_ticket(getUsername(), form['trainID'])
     if ret:
-        return render_template('form_alert.html', username = getUsername(), message = 'Succeed!', form = Constant.refund_ticket_form, form_path = '/refund_ticket', title = 'Refund Ticket')
+        return render_template('form.html', username = getUsername(), message = 'Succeed!', form = Constant.refund_ticket_form, form_path = '/refund_ticket', title = 'Refund Ticket')
     else:
-        return render_template('form_alert.html', username = getUsername(), message = 'Failed!', form = Constant.refund_ticket_form, form_path = '/refund_ticket', title = 'Refund Ticket')
+        return render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.refund_ticket_form, form_path = '/refund_ticket', title = 'Refund Ticket')
 
-@app.route('/clean')
+@app.route('/clean', methods=("GET", "POST"))
 def clean():
-    #todo Warning
-    ticket.clean()
-    userPool.clean()
-    return redirect('/')
+    if request.method == "GET":
+        return render_template('form.html', username = getUsername(), warning = 'Are You Sure to Clear All Data?', form = Constant.clean_form, form_path = '/clean', title = 'Clear Data')
+    form = request.form.to_dict()
+    if form['username'] == getUsername():
+        ticket.clean()
+        userPool.clean()
+        return redirect('/')
+    else:
+        return render_template('form.html', username = getUsername(), message = 'Failed!', warning = 'Are You Sure to Clear All Data?', form = Constant.clean_form, form_path = '/clean', title = 'Clear Data')
+
+@app.route('/shutdown', methods=("GET", "POST"))
+def shutdown():
+    if request.method == "GET":
+        return render_template('form.html', username = getUsername(), warning = 'Are You Sure to Shutdown the System?', form = Constant.shutdown_form, form_path = '/shutdown', title = 'Shutdown System')
+    form = request.form.to_dict()
+    if form['username'] == getUsername():
+        ticket.exit()
+        return redirect('/')
+    else:
+        return render_template('form.html', username = getUsername(), message = 'Failed!', warning = 'Are You Sure to Shutdown the System?', form = Constant.shutdown_form, form_path = '/shutdown', title = 'Shutdown System')
 
 
 if __name__ == '__main__':

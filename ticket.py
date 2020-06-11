@@ -86,6 +86,11 @@ class Ticket:
         :return: None
         """
         return
+    def exit(self):
+        """
+        :return: None
+        """
+        return
 
 class Constant:
     add_user_form = [('Username', 'username', 1), ('Password', 'password', 1), ('Name', 'name', 1), ('Mail Address', 'mailAddr', 1), ('Privilege', 'privilege', 1)]
@@ -103,6 +108,8 @@ class Constant:
                        ('Number', 'number', 1), ('Queue? (0 or 1)', 'que', 1)]
     refund_ticket_form = [('Order Number (From Last)', 'num', 1)]
     login_form = [('Username', 'username', 1), ('Password', 'password', 1)]
+    clean_form = [('Enter Your Username Here to Authenticate', 'username', 1)]
+    shutdown_form = [('Enter Your Username Here to Authenticate', 'username', 1)]
 
 
 from uuid import uuid4
