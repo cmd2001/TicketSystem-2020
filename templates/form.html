@@ -2,7 +2,8 @@
 
 <head>
     <title>{{title}}</title>
-    <link href="../static/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/mdui.min.css">
+    <script src="../static/js/mdui.min.js"></script>
 </head>
 
 <body>
@@ -21,7 +22,7 @@
                     {{x[0]}}:<input type = "text" name = "{{x[1]}}"> <br>
                 {% endif %}
             {% endfor %}
-            <button type="submit" class="btn btn-primary">submit</button>
+            <button class="mdui-btn mdui-ripple mdui-color-indigo">submit</button>
         </form>
     </div>
 </body>

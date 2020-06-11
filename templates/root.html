@@ -2,34 +2,63 @@
 
 <head>
     <title>Ticket System 2020</title>
-    <link href="../static/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/mdui.min.css">
+    <script src="../static/js/mdui.min.js"></script>
 </head>
 
-<body>
-    <div class="col-lg-12">
-        <h2>Welcome Ticket System 2020~</h2>
+<body class="mdui-appbar-with-toolbar mdui-drawer-body-left">
+        <div class="mdui-appbar mdui-appbar-fixed mdui-toolbar mdui-color-indigo">
+            <span class="mdui-btn mdui-btn-icon mdui-ripple mdui-ripple-white" mdui-drawer="{target: '#main-drawer', swipe: true}"><i class="mdui-icon material-icons">menu</i></span>
+            <span class="mdui-typo-title">Welcome Ticket System 2020~</span>
+            <div class="mdui-toolbar-spacer"></div>
+            {% if not flag %}
+            <a class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">account_circle</i></a>{{username}}<a href="/logout"><button class="mdui-btn mdui-ripple mdui-color-purple">Logout</button></a>
+            {% endif %}
+        </div>
+    <div class="mdui-drawer mdui-drawer-close" id="main-drawer">
         {% if not flag %}
-            Current User: {{username}} <a href="/logout">Logout</a><br>
-            Manage Users:<br>
-            <a href="/query_profile"><button type="button" class="btn btn-primary">Query Profile</button></a>
-            <a href="/add_user"><button type="button" class="btn btn-primary">Add User</button></a>
-            <a href="/modify_profile"><button type="button" class="btn btn-primary">Modify Profile</button></a><br>
-            Manage Trains:<br>
-            <a href="/add_train"><button type="button" class="btn btn-info">Add Train</button></a>
-            <a href="/release_train"><button type="button" class="btn btn-info">Release Train</button></a>
-            <a href="/query_train"><button type="button" class="btn btn-info">Query Train</button></a>
-            <a href="/delete_train"><button type="button" class="btn btn-info">Delete Train</button></a><br>
-            Buy Tickets:<br>
-            <a href="/query_ticket"><button type="button" class="btn btn-success">Query Ticket</button></a>
-            <a href="/query_transfer"><button type="button" class="btn btn-success">Query Transfer</button></a>
-            <a href="/query_order"><button type="button" class="btn btn-success">Query Order</button></a>
-            <a href="/refund_ticket"><button type="button" class="btn btn-success">Refund Ticket</button></a><br>
-            Clean System:<br>
-            <a href="/clean"><button type="button" class="btn btn-danger">Clean</button></a><br>
+            <a href="/query_profile" class="mdui-list-item mdui-ripple mdui-text-color-black">Query Profile</a>
+            <a href="/add_user" class="mdui-list-item mdui-ripple mdui-text-color-black">Add User</a>
+            <a href="/modify_profile" class="mdui-list-item mdui-ripple mdui-text-color-black">Modify Profile</a>
+            <a href="/add_train" class="mdui-list-item mdui-ripple mdui-text-color-black">Add Train</a>
+            <a href="/release_train" class="mdui-list-item mdui-ripple mdui-text-color-black">Release Train</a>
+            <a href="/query_train" class="mdui-list-item mdui-ripple mdui-text-color-black">Query Train</a>
+            <a href="/delete_train" class="mdui-list-item mdui-ripple mdui-text-color-black">Delete Train</a>
+            <a href="/query_ticket" class="mdui-list-item mdui-ripple mdui-text-color-black">Query Ticket</a>
+            <a href="/query_transfer" class="mdui-list-item mdui-ripple mdui-text-color-black">Query Transfer</a>
+            <a href="/query_order" class="mdui-list-item mdui-ripple mdui-text-color-black">Query Order</a>
+            <a href="/refund_ticket" class="mdui-list-item mdui-ripple mdui-text-color-black">Refund Ticket</a>
         {% else %}
-            Please Login First ! <br>
-            <a href="/login"><button type="button" class="btn btn-primary">Login</button></a>
+            未登陆用户爪巴！
         {% endif %}
+    </div>
+    <div class="mdui-container">
+        <div class="mdui-typo">
+            {% if not flag %}
+                    <div class="mdui-typo-display-3 mdui-text-color-indigo">Control Panel</div>
+                    <div class="mdui-typo-headline mdui-text-color-indigo">Manage Users</div>
+                    <a href="/query_profile"><button class="mdui-btn mdui-ripple mdui-color-blue">Query Profile</button></a>
+                    <a href="/add_user"><button class="mdui-btn mdui-ripple mdui-color-blue">Add User</button></a>
+                    <a href="/modify_profile"><button class="mdui-btn mdui-ripple mdui-color-blue">Modify Profile</button></a><br>
+                    <div class="mdui-typo-headline mdui-text-color-indigo">Manage Trains</div>
+                    <a href="/add_train"><button class="mdui-btn mdui-ripple mdui-color-orange">Add Train</button></a>
+                    <a href="/release_train"><button class="mdui-btn mdui-ripple mdui-color-orange">Release Train</button></a>
+                    <a href="/query_train"><button class="mdui-btn mdui-ripple mdui-color-orange">Query Train</button></a>
+                    <a href="/delete_train"><button class="mdui-btn mdui-ripple mdui-color-orange">Delete Train</button></a><br>
+                    <div class="mdui-typo-headline mdui-text-color-indigo">Buy Tickets</div>
+                    <a href="/query_ticket"><button class="mdui-btn mdui-ripple mdui-color-green">Query Ticket</button></a>
+                    <a href="/query_transfer"><button class="mdui-btn mdui-ripple mdui-color-green">Query Transfer</button></a>
+                    <a href="/query_order"><button class="mdui-btn mdui-ripple mdui-color-green">Query Order</button></a>
+                    <a href="/refund_ticket"><button class="mdui-btn mdui-ripple mdui-color-green">Refund Ticket</button></a><br>
+                    <div class="mdui-typo-headline mdui-text-color-indigo">Manage System</div>
+                    <a href="/clean"><button class="mdui-btn mdui-ripple mdui-color-red">Clean</button></a>
+                    <a href="/shutdown"><button class="mdui-btn mdui-ripple mdui-color-red">Shutdown System</button></a><br>
+                </div>
+            {% else %}
+                    Please Login First ! <br>
+                    <a href="/login"><button class="mdui-btn mdui-ripple mdui-color-indigo">Login</button></a>
+            {% endif %}
+        </div>
     </div>
 </body>
 
