@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, make_response
 from ticket import Ticket, Constant, cookiePool
 
 app = Flask(__name__)
-ticket = Ticket(None)
+ticket = Ticket('./backend')
 
 userPool = cookiePool()
 

@@ -12,3 +12,5 @@ include_directories(
 AUX_SOURCE_DIRECTORY(src DIR_SRCS)
 
 add_executable(code ${DIR_SRCS})
+
+add_executable(backend backend.cpp)

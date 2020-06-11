@@ -1,7 +1,27 @@
+import sys
+from subprocess import *
 
 class Ticket:
-    def __init__(self, para):
-        self.para = para
+    def __init__(self, exe):
+        self.exe = exe
+        self.proc = Popen(exe, bufsize=1024, stdin=PIPE, stdout=PIPE)
+        (self.fin, self.fout) = (self.proc.stdin, self.proc.stdout)
+
+    def pipePrint(self, s):
+        self.fin.write(s.encode('UTF-8'))
+
+    def pipeRead(self):
+        ret = ''
+        while 1:
+            x = self.fout.readline().decode('UTF-8')
+            if x == '$Final' or x == '$Failed':
+                ret += x[0:-1]
+                break
+            else:
+                ret += x
+        return ret.split('\n')
+
+    # todo Here
     def add_user(self, cur_username, username, password, name, mailAddr, privilege):
         """
         :return: bool # 1 when success

@@ -45,3 +45,10 @@ venv
 # gitignore
 .gitignore
 
+# build
+Makefile
+CMakefiles
+CMakeCache.txt
+cmake_install.cmake
+code
+backend
