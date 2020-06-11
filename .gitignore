@@ -45,3 +45,10 @@ venv
 # gitignore
 .gitignore
 
+temp
+test.py
+try.cpp
+build
+cmake-build-debug
+__pycache__
+data
