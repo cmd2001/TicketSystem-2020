@@ -12,20 +12,24 @@ string (MLJ::Ticket::*FUNCs[])(const string *, const int &) = {
     &MLJ::Ticket::delete_train,   &MLJ::Ticket::query_ticket,  &MLJ::Ticket::query_transfer, &MLJ::Ticket::buy_ticket,
     &MLJ::Ticket::query_order,    &MLJ::Ticket::refund_ticket, &MLJ::Ticket::clean,          &MLJ::Ticket::exit };
 
+#define debug cerr
 
 int main() {
-    static string cmd_list[30], src;
-    static int siz;
     static bool is_legal_cmd;
-
+    cerr << "C++ INITED" << endl;
     while(true) {
+        string cmd_list[30], src;
+        int siz = 0;
         getline(cin, src); //
+        debug << "src = " << src << endl;
         is_legal_cmd = 0;
         MLJ::split(src, cmd_list, siz, ' ');
         for(int i = 0; i < sizeof(CMDs) / sizeof(CMDs[0]); ++i)
             if(cmd_list[0] == CMDs[i]) {
+                debug << "i = " << i << cmd_list[0] << endl;
                 try {
                     string tmp = (ticket.*FUNCs[i])(cmd_list, siz);
+                    debug << "in C++ out = " << tmp << "\n$Final" << endl;
                     cout << tmp << "\n$Final" << endl; // magic code
                     if(tmp == "bye") exit(0);
                 } catch(...) {
