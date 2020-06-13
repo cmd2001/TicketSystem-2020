@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, make_response
 from ticket import Ticket, Constant, cookiePool
 
 app = Flask(__name__)
-ticket = Ticket(None)
+ticket = Ticket('./backend')
 
 userPool = cookiePool()
 
@@ -71,6 +71,8 @@ def query_profile():
         return render_template('form.html', username = getUsername(), form = Constant.query_profile_form, form_path = '/query_profile', title = 'Query Profile')
     form = request.form.to_dict()
     ret = ticket.query_profile(getUsername(), form['username'])
+    if ret == -1:
+        return render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.query_profile_form, form_path = '/query_profile', title = 'Query Profile')
     return render_template('query_profile.html', ret = ret)
 
 @app.route('/modify_profile', methods=("GET", "POST"))
@@ -113,6 +115,8 @@ def query_train():
         return render_template('form.html', username = getUsername(), form = Constant.query_train_form, form_path = '/query_train', title = 'Query Train')
     form = request.form.to_dict()
     ret = ticket.query_train(form['trainID'], form['date'])
+    if ret == -1:
+        render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.query_train_form, form_path = '/query_train', title = 'Query Train')
     return render_template('query_train.html', ret = ret)
 
 @app.route('/delete_train', methods=("GET", "POST"))
@@ -132,6 +136,8 @@ def query_ticket():
         return render_template('form.html', username = getUsername(), form = Constant.query_ticket_form, form_path = '/query_train', title = 'Query Ticket')
     form = request.form.to_dict()
     ret = ticket.query_ticket(form['time'], form['start'], form['end'], form['sort_param'])
+    if ret == -1:
+        render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.query_ticket_form, form_path = '/query_train', title = 'Query Ticket')
     return render_template('query_ticket.html', ret = ret)
 
 @app.route('/query_transfer', methods=("GET", "POST"))
@@ -157,7 +163,7 @@ def buy_ticket():
 
 @app.route('/query_order')
 def query_order():
-    ret = ticket.query_order(getUsername())
+    ret = ticket.query_order(getUsername()) # it can never be -1
     return render_template('query_order.html', ret = ret)
 
 @app.route('/refund_ticket', methods=("GET", "POST"))
@@ -193,7 +199,6 @@ def shutdown():
         return redirect('/')
     else:
         return render_template('form.html', username = getUsername(), message = 'Failed!', warning = 'Are You Sure to Shutdown the System?', form = Constant.shutdown_form, form_path = '/shutdown', title = 'Shutdown System')
-
 
 if __name__ == '__main__':
     app.run(debug = True)

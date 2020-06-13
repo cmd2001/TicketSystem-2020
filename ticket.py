@@ -1,27 +1,82 @@
+import sys
+from subprocess import *
 
 class Ticket:
-    def __init__(self, para):
-        self.para = para
+    def __init__(self, exe):
+        self.exe = exe
+        self.proc = Popen(exe, bufsize=1024, stdin=PIPE, stdout=PIPE)
+        (self.fin, self.fout) = (self.proc.stdin, self.proc.stdout)
+
+    def __del__(self):
+        self.pipePrint('exit')
+        self.pipeRead()
+
+    def pipePrint(self, s):
+        s += '\n' # '\n' matters!
+        self.fin.write(s.encode('UTF-8'))
+        self.fin.flush()
+
+    def pipeRead(self):
+        ret = ''
+        while 1:
+            x = self.fout.readline().decode('UTF-8')
+            print('x = ', x)
+            if x == '$Final\n' or x == '$Failed\n': # ret contains $Final, '\n' matters!
+                ret += x[0:-1]
+                break
+            else:
+                ret += x
+        return ret.split('\n')
+
+
     def add_user(self, cur_username, username, password, name, mailAddr, privilege):
         """
         :return: bool # 1 when success
         """
-        return
+        com = 'adduser -c cur_username -u username -p password -n name -m mailAddr -g privilege'
+        com = com.replace('cur_username', cur_username).replace('username', username).replace('password', password)\
+                 .replace('name', name).replace('mailAddr', mailAddr).replace('privilege', privilege)
+        self.pipePrint(com)
+        ret = self.pipeRead()
+        return ret[0] != '$Failed' and ret[0] != '-1'
+
     def login(self, username, password):
         """
         :return: bool
         """
-        return 1
+        com = 'login -u username -p password'
+        com = com.replace('username', username).replace('password', password)
+        print('com = ', com)
+        self.pipePrint(com)
+        print('pipe Printed')
+        ret = self.pipeRead()
+        print('ret = ', ret)
+        return ret[0] != '$Failed' and ret[0] != '-1'
+
     def logout(self, username):
         """
         :return: bool
         """
-        return
+        com = 'logout -u username'
+        com.replace('username', username)
+        self.pipePrint(com)
+        ret = self.pipeRead()
+        return ret[0] != '$Failed' and ret[0] != '-1'
+
+
     def query_profile(self, cur_username, tar_username):
         """
         :return: (username，name, mailAddr, privilege)
         """
-        return
+        com = 'query_profile -c cur_username -u tar_username'
+        com = com.replace('cur_username', cur_username).replace('tar_username', tar_username)
+        self.pipePrint(com)
+        ret = self.pipeRead()
+        if ret[0] == '$Failed' or ret[0] == '-1':
+            return -1
+        ret = ret[0].split(' ')
+        return ret
+
     def modify_profile(self, cur_username, username, password, name, mailAddr, privilege):
         """
         :param cur_username: str
@@ -31,65 +86,168 @@ class Ticket:
         :param mailAddr: str
         :return: bool
         """
-        return
+        com = 'modify_profile -c cur_username -u username'
+        com = com.replace('cur_username', cur_username).replace('username', username)
+        if password:
+            com += ' -p ' + password
+        if name:
+            com += ' -n ' + name
+        if mailAddr:
+            com += '-m ' + mailAddr
+        if privilege:
+            com += '-g ' + privilege
+        self.pipePrint(com)
+        ret = self.pipeRead()
+        return ret[0] != '$Failed' and ret[0] != '-1'
+
+
     def add_train(self, trainID, stationNum, seatNum, stations, prices, startTime, travelTimes, stopoverTimes, saleDate, type):
         """
         :return: None
         """
-        return
+        com = 'add_train -i trainID -n stationNum -m seatNum -s stations -p prices -x startTime -t travelTimes -o stopoverTimes -d saleDate -y type'
+        com = com.replace('trainID', trainID).replace('stationNum', stationNum).replace('seatNum', seatNum)\
+                 .replace('stations', stations).replace('prices', prices).replace('startTime', startTime)\
+                 .replace('travelTimes', travelTimes).replace('stopoverTimes', stopoverTimes).replace('saleDate', saleDate)\
+                 .replace('type', type)
+        self.pipePrint(com)
+        ret = self.pipeRead()
+        return ret[0] != '$Failed' and ret[0] != '-1'
+
     def release_train(self, trainID):
         """
         :return: None
         """
-        return
+        com = 'release_train -i trainID'
+        com = com.replace('trainID', trainID)
+        self.pipePrint(com)
+        ret = self.pipeRead()
+        return ret[0] != '$Failed' and ret[0] != '-1'
+
     def query_train(self, trainID, date):
         """
         :return: ((trainID, type), (stations, ARRIVING_TIME, LEAVING_TIME, PRICE, SEAT)*)
         # 07-02 05:19 -> 07-02 05:24 114 1000
         """
-        return
+        com = 'query_train -i trainID -d date'
+        com = com.replace('trainID', trainID).replace('date', date)
+        self.pipePrint(com)
+        ret0 = self.pipeRead()
+        if ret0[0] == '$Failed' or ret0[0] == '-1':
+            return -1
+        ret = [(trainID, date)]
+        for i in range(0, len(ret0) - 1):
+            ret.append(ret0[i].split(' '))
+        return ret
+
     def delete_train(self, trainID):
         """
         :return: bool
         """
-        return
+        com = 'delete_train -i trainID'
+        com = com.replace('trainID', trainID)
+        self.pipePrint(com)
+        ret = self.pipeRead()
+        return ret[0] != '$Failed' and ret[0] != '-1'
+
+
     def query_ticket(self, time, start, end, sort_param):
         """
         :return: [(trainID, FROM, LEAVING_TIME, TO, ARRIVING_TIME, PRICE, SEAT)*]
         HAPPY_TRAIN 中院 08-17 05:24 -> 下院 08-17 15:24 514 1000
         """
-        return
+        com = 'query_ticket -s start -t end -d time'
+        com = com.replace('time', time).replace('start', start).replace('end', end)
+        if sort_param:
+            com += ' -p ' + sort_param
+        self.pipePrint(com)
+        ret0 = self.pipeRead()
+        if ret0[0] == '$Failed' or ret0[0] == '-1':
+            return -1
+        ret = []
+        for i in range(0, len(ret[0]) - 1):
+            ret.append(ret0[0].split(' '))
+        return ret
+
     def query_transfer(self, time, start, end, sort_param):
         """
         :return: [(trainID, FROM, LEAVING_TIME, TO, ARRIVING_TIME, PRICE, SEAT)*2]
         """
-        return
+        com = 'query_transfer -s start -t end -d time'
+        com = com.replace('time', time).replace('start', start).replace('end', end)
+        if sort_param:
+            com += ' -p ' + sort_param
+        self.pipePrint(com)
+        ret0 = self.pipeRead()
+        if ret0[0] == '$Failed' or ret0[0] == '-1':
+            return -1
+        ret = []
+        for i in range(0, len(ret[0]) - 1):
+            ret.append(ret0[0].split(' '))
+        return ret
+
     def buy_ticket(self, username, trainID, day, ffrom, to, number, que):
         """
         :param que: bool
         :return: int or 'queue', -1 when fail
         """
+        com = 'buy_ticket -u username -i trainID -d day -n number -f ffrom -t to'
+        com = com.replace('username', username).replace('trainID', trainID).replace('day', day)\
+                 .replace('ffrom', ffrom).replace('to', to).replace('number', number)
+        if que:
+            com += ' -q true'
+        self.pipePrint(com)
+        ret = self.pipeRead()
+        if ret[0] == '$Failed':
+            return -1
+        return ret[0]
+
     def query_order(self, username):
         """
         :return: [(status, trainID, FROM, LEAVING_TIME, TO, ARRIVING_TIME, PRICE, NUM)*]
         # [pending] HAPPY_TRAIN 上院 08-17 05:24 -> 下院 08-17 15:24 628 500
         """
-        return
+        com = 'query_order -u username'
+        com = com.replace('username', username)
+        self.pipePrint(com)
+        ret0 = self.pipeRead()
+        if ret0[0] == '$Failed' or ret0[0] == '-1':
+            return -1
+        ret = []
+        for i in range(0, len(ret0) - 1):
+            ret.append(ret0[i].split(' '))
+        return ret
+
     def refund_ticket(self, username, num):
         """
         :param num: int, refund kth order from last order.
         :return: bool, fail when refund twice
         """
-        return
+        com = 'refund_ticket -u username'
+        com = com.replace('username', username)
+        if num:
+            com += ' -i ' + num
+        self.pipePrint(com)
+        ret = self.pipeRead()
+        if ret[0] == '$Failed':
+            return -1
+        return ret[0]
+
     def clean(self):
         """
         :return: None
         """
+        com = 'clean'
+        self.pipePrint(com)
+        self.pipeRead()
         return
     def exit(self):
         """
         :return: None
         """
+        com = 'exit'
+        self.pipePrint(com)
+        self.pipeRead()
         return
 
 class Constant:
