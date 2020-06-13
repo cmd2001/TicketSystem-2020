@@ -24,6 +24,7 @@ int main() {
         debug << "src = " << src << endl;
         is_legal_cmd = 0;
         MLJ::split(src, cmd_list, siz, ' ');
+        for(int i = 0; i < siz; i++) debug << cmd_list[i] << " "; debug << endl;
         for(int i = 0; i < sizeof(CMDs) / sizeof(CMDs[0]); ++i)
             if(cmd_list[0] == CMDs[i]) {
                 debug << "i = " << i << cmd_list[0] << endl;
@@ -33,6 +34,7 @@ int main() {
                     cout << tmp << "\n$Final" << endl; // magic code
                     if(tmp == "bye") exit(0);
                 } catch(...) {
+                    debug << "failed1" << endl;
                     cout << "$Failed" << endl; // magic code
                 }
                 is_legal_cmd = 1;

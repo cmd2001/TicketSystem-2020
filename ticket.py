@@ -33,7 +33,7 @@ class Ticket:
         """
         :return: bool # 1 when success
         """
-        com = 'adduser -c cur_username -u username -p password -n name -m mailAddr -g privilege'
+        com = 'add_user -c cur_username -u username -p password -n name -m mailAddr -g privilege'
         com = com.replace('cur_username', cur_username).replace('username', username).replace('password', password)\
                  .replace('name', name).replace('mailAddr', mailAddr).replace('privilege', privilege)
         self.pipePrint(com)
@@ -58,7 +58,7 @@ class Ticket:
         :return: bool
         """
         com = 'logout -u username'
-        com.replace('username', username)
+        com = com.replace('username', username)
         self.pipePrint(com)
         ret = self.pipeRead()
         return ret[0] != '$Failed' and ret[0] != '-1'
@@ -93,9 +93,9 @@ class Ticket:
         if name:
             com += ' -n ' + name
         if mailAddr:
-            com += '-m ' + mailAddr
+            com += ' -m ' + mailAddr
         if privilege:
-            com += '-g ' + privilege
+            com += ' -g ' + privilege
         self.pipePrint(com)
         ret = self.pipeRead()
         return ret[0] != '$Failed' and ret[0] != '-1'
@@ -106,7 +106,7 @@ class Ticket:
         :return: None
         """
         com = 'add_train -i trainID -n stationNum -m seatNum -s stations -p prices -x startTime -t travelTimes -o stopoverTimes -d saleDate -y type'
-        com = com.replace('trainID', trainID).replace('stationNum', stationNum).replace('seatNum', seatNum)\
+        com = com.replace('trainID', trainID).replace('stationNum', str(stationNum)).replace('seatNum', seatNum)\
                  .replace('stations', stations).replace('prices', prices).replace('startTime', startTime)\
                  .replace('travelTimes', travelTimes).replace('stopoverTimes', stopoverTimes).replace('saleDate', saleDate)\
                  .replace('type', type)
@@ -229,9 +229,7 @@ class Ticket:
             com += ' -i ' + num
         self.pipePrint(com)
         ret = self.pipeRead()
-        if ret[0] == '$Failed':
-            return -1
-        return ret[0]
+        return ret[0] != '$Failed' and ret[0] != '-1'
 
     def clean(self):
         """

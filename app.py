@@ -133,11 +133,11 @@ def delete_train():
 @app.route('/query_ticket', methods=("GET", "POST"))
 def query_ticket():
     if request.method == "GET":
-        return render_template('form.html', username = getUsername(), form = Constant.query_ticket_form, form_path = '/query_train', title = 'Query Ticket')
+        return render_template('form.html', username = getUsername(), form = Constant.query_ticket_form, form_path = '/query_ticket', title = 'Query Ticket')
     form = request.form.to_dict()
     ret = ticket.query_ticket(form['time'], form['start'], form['end'], form['sort_param'])
     if ret == -1:
-        render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.query_ticket_form, form_path = '/query_train', title = 'Query Ticket')
+        render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.query_ticket_form, form_path = '/query_ticket', title = 'Query Ticket')
     return render_template('query_ticket.html', ret = ret)
 
 @app.route('/query_transfer', methods=("GET", "POST"))
@@ -171,7 +171,7 @@ def refund_ticket():
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.refund_ticket_form, form_path = '/refund_ticket', title = 'Refund Ticket')
     form = request.form.to_dict()
-    ret = ticket.refund_ticket(getUsername(), form['trainID'])
+    ret = ticket.refund_ticket(getUsername(), form['num'])
     if ret:
         return render_template('form.html', username = getUsername(), message = 'Succeed!', form = Constant.refund_ticket_form, form_path = '/refund_ticket', title = 'Refund Ticket')
     else:
