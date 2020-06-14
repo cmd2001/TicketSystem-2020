@@ -135,9 +135,10 @@ class Ticket:
         ret0 = self.pipeRead()
         if ret0[0] == '$Failed' or ret0[0] == '-1':
             return -1
-        ret = [(trainID, date)]
+        ret = []
         for i in range(0, len(ret0) - 1):
             ret.append(ret0[i].split(' '))
+        print('ret = ', ret)
         return ret
 
     def delete_train(self, trainID):
@@ -164,9 +165,10 @@ class Ticket:
         ret0 = self.pipeRead()
         if ret0[0] == '$Failed' or ret0[0] == '-1':
             return -1
-        ret = []
-        for i in range(0, len(ret[0]) - 1):
-            ret.append(ret0[0].split(' '))
+        print('ret0 = ', ret0)
+        ret = [[start, end, time]]
+        for i in range(1, len(ret0) - 1):
+            ret.append(ret0[i].split(' '))
         return ret
 
     def query_transfer(self, time, start, end, sort_param):
@@ -181,9 +183,9 @@ class Ticket:
         ret0 = self.pipeRead()
         if ret0[0] == '$Failed' or ret0[0] == '-1':
             return -1
-        ret = []
-        for i in range(0, len(ret[0]) - 1):
-            ret.append(ret0[0].split(' '))
+        ret = [[start, end, time]]
+        for i in range(1, len(ret0) - 1):
+            ret.append(ret0[i].split(' '))
         return ret
 
     def buy_ticket(self, username, trainID, day, ffrom, to, number, que):
@@ -214,7 +216,7 @@ class Ticket:
         if ret0[0] == '$Failed' or ret0[0] == '-1':
             return -1
         ret = []
-        for i in range(0, len(ret0) - 1):
+        for i in range(1, len(ret0) - 1):
             ret.append(ret0[i].split(' '))
         return ret
 
@@ -267,6 +269,18 @@ class Constant:
     clean_form = [('Enter Your Username Here to Authenticate', 'username', 1)]
     shutdown_form = [('Enter Your Username Here to Authenticate', 'username', 1)]
 
+    query_train_list = (0, 1, 2, 4, 5, 6, 7)
+    query_train_table_head = ('Station', 'Arrival Date', 'Arrival Time', 'Departure Date', 'Departure Time', 'Cumulative Price', 'Remaining Seat')
+
+    query_ticket_list = (0, 1, 2, 3, 5, 6, 7, 8, 9)
+    query_ticket_table_head = ('Train ID', 'Start Station', 'Start Date', 'Start Time',
+                               'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Remaining Seat')
+    query_transfer_list = (0, 1, 2, 3, 5, 6, 7, 8, 9)
+    query_transfer_table_head = ('Train ID', 'Start Station', 'Start Date', 'Start Time',
+                               'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Remaining Seat')
+    query_order_list = (0, 1, 2, 3, 4, 6, 7, 8, 9, 10)
+    query_order_table_head = ('Status', 'Train ID', 'Start Station', 'Start Date', 'Start Time',
+                              'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Numbers')
 
 from uuid import uuid4
 
