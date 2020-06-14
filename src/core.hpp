@@ -210,18 +210,20 @@ public:
     };
     typedef std::pair<bool, type_train_release> release_return;
 
-    class type_stationName_startTime {
+    class type_stationName_startTime { // 包括列车runtimeID作为第三关键字（防止key值相同的情况发生）
     public:
         char stationName[42];
         datentime startTime;
+        char runtimeID[28];
         type_stationName_startTime() = default;
-        type_stationName_startTime(const char *_n, const datentime &_t) {
+        type_stationName_startTime(const char *_n, const datentime &_t, const char *_runtimeid) {
             strcpy(stationName, _n);
             startTime = _t;
+            strcpy(runtimeID, _runtimeid);
         }
         inline bool operator<(const type_stationName_startTime &o) const {
             int _ = strcmp(stationName, o.stationName);
-            return (_ == 0)? startTime < o.startTime : _ < 0;
+            return (_ == 0)? ((startTime == o.startTime)? strcmp(runtimeID, o.runtimeID) < 0 : startTime < o.startTime) : _ < 0;
         }
     };
 
@@ -343,6 +345,11 @@ public:
     database_test<type_queue_key, type_userName_orderID> Database_queue; // 候补队列，value为order_key和totalID
     int totalID_runtime; // 运行时的总orderID，在退出时写入文件file_totalID
 
+private:
+    char MAXID[28], MINID[28];
+
+public:
+
     Ticket():
         Users("file_users"),
         Cur_users("file_cur_users"),
@@ -359,6 +366,9 @@ public:
         totalID_in.close();
         // 若在线列表非空则清空在线列表（针对强制退出情况）
         if(!Cur_users.empty()) Cur_users.clear();
+
+        memset(MINID, -128, sizeof(MINID));
+        memset(MAXID, 127, sizeof(MAXID));
     }
 
 private:
@@ -729,7 +739,7 @@ public:
 
             for(int j = 0; j < t.stationNum; ++j) { // 按车站和出发时间（含天）列入Database_stations
 //                cout << t.stations[j] << " " << t.leaving[j].plusdate(everyday_starttime.date).get() << " " << runtimeID << " " << j << endl;
-                Database_stations.insert(type_stationName_startTime(t.stations[j], t.leaving[j].plusdate(everyday_starttime.date)), std::make_pair(type_trainID(runtimeID), j));
+                Database_stations.insert(type_stationName_startTime(t.stations[j], t.leaving[j].plusdate(everyday_starttime.date), t_release.runtimeID), std::make_pair(type_trainID(runtimeID), j));
 
             }
             everyday_starttime.add_date(1);
@@ -842,7 +852,7 @@ public:
         if(startS == endS) return "0";
 
         // 思路：查询当天经过起始站的车次ID，在Trains中查出车次信息，找到之后经过到达站的车次，存入list中排序
-        auto st = Database_stations.range(type_stationName_startTime(startS.c_str(), date), type_stationName_startTime(startS.c_str(), date + 1439));
+        auto st = Database_stations.range(type_stationName_startTime(startS.c_str(), date, MINID), type_stationName_startTime(startS.c_str(), date + 1439, MAXID));
         if(st.empty()) return "0";
         train_return this_t;
         type_train_tnc *list = new type_train_tnc[st.size()]; // 此处有new
@@ -913,8 +923,8 @@ public:
         if(startS == endS) return "0";
         // st查询起始站对应有哪些车次，et查询从当天至世界末日终点站对应有哪些车次
         // 思路：枚举st车次经过的站点，枚举et逆向经过的站点，两者对应且符合时间先后则可行
-        auto st = Database_stations.range(type_stationName_startTime(startS.c_str(), date), type_stationName_startTime(startS.c_str(), date + 1439));
-        auto et = Database_stations.range(type_stationName_startTime(endS.c_str(), date), type_stationName_startTime(endS.c_str(), datentime("23:59", "12-31")));
+        auto st = Database_stations.range(type_stationName_startTime(startS.c_str(), date, MINID), type_stationName_startTime(startS.c_str(), date + 1439, MAXID));
+        auto et = Database_stations.range(type_stationName_startTime(endS.c_str(), date, MINID), type_stationName_startTime(endS.c_str(), datentime("23:59", "12-31"), MAXID));
         if(st.empty() || et.empty()) return "0";
         type_train_transfer_tnc choosed_transfer;
         for(auto & it_1 : st) {
@@ -1187,6 +1197,7 @@ public:
         Trains_released.clear();
         Database_stations.clear();
         Database_orders.clear();
+        Database_queue.clear();
         return "0";
     }
 
