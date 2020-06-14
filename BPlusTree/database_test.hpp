@@ -95,7 +95,7 @@ public:
         return true;
     };
 
-    bool modify(Key K,Value OldV,Value NewV){
+    bool modify(const Key &K, const Value &NewV){
         fstream io(Filename,ios::binary|ios::in|ios::out);
         if(!io){cerr<<"modify F open error"<<endl;}
 
@@ -105,7 +105,7 @@ public:
         size_t pos=0;
         io.read(reinterpret_cast<char*>(&P),sizeof(P));
         while(!io.eof()){
-            if(Isequal(K,P.first)&&OldV==P.second){
+            if(Isequal(K,P.first)){
                 P.second=NewV;
                 io.seekp(pos*sizeof(P));
                 io.write(reinterpret_cast<char*>(&P),sizeof(P));

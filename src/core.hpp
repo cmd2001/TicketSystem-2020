@@ -210,18 +210,20 @@ public:
     };
     typedef std::pair<bool, type_train_release> release_return;
 
-    class type_stationName_startTime {
+    class type_stationName_startTime { // 包括列车runtimeID作为第三关键字（防止key值相同的情况发生）
     public:
         char stationName[42];
         datentime startTime;
+        char runtimeID[28];
         type_stationName_startTime() = default;
-        type_stationName_startTime(const char *_n, const datentime &_t) {
+        type_stationName_startTime(const char *_n, const datentime &_t, const char *_runtimeid) {
             strcpy(stationName, _n);
             startTime = _t;
+            strcpy(runtimeID, _runtimeid);
         }
         inline bool operator<(const type_stationName_startTime &o) const {
             int _ = strcmp(stationName, o.stationName);
-            return (_ == 0)? startTime < o.startTime : _ < 0;
+            return (_ == 0)? ((startTime == o.startTime)? strcmp(runtimeID, o.runtimeID) < 0 : startTime < o.startTime) : _ < 0;
         }
     };
 
@@ -343,6 +345,11 @@ public:
     database_test<type_queue_key, type_userName_orderID> Database_queue; // 候补队列，value为order_key和totalID
     int totalID_runtime; // 运行时的总orderID，在退出时写入文件file_totalID
 
+private:
+    char MAXID[28], MINID[28];
+
+public:
+
     Ticket():
         Users("file_users"),
         Cur_users("file_cur_users"),
@@ -359,6 +366,9 @@ public:
         totalID_in.close();
         // 若在线列表非空则清空在线列表（针对强制退出情况）
         if(!Cur_users.empty()) Cur_users.clear();
+
+        memset(MINID, -128, sizeof(MINID));
+        memset(MAXID, 127, sizeof(MAXID));
     }
 
 private:
@@ -591,7 +601,7 @@ public:
         if(!vis[5]) newuser.privilege = that_u.second.privilege;
 
         ans = (string)newuser.userName + " " + newuser.name + " " + newuser.mailAddr + " " + std::to_string(newuser.privilege);
-        if(!(newuser == that_u.second)) Users.modify(newuser.userName, that_u.second, newuser);
+        if(!(newuser == that_u.second)) Users.modify(newuser.userName, newuser);
         return ans;
     }
 
@@ -714,9 +724,9 @@ public:
         this_t = Trains_base.query(trainID);
         if(!this_t.first) return "-1";
         if(this_t.second.is_released) return "-1";
-        type_train t = this_t.second;
+        type_train &t = this_t.second;
         t.is_released = 1;
-        Trains_base.modify(trainID, this_t.second, t); // modify Train_base, is_released = 1
+        Trains_base.modify(trainID, t); // modify Train_base, is_released = 1
 
         string runtimeID; // 后置数字后列入Trains_released(例如：trainA#06-20)
         datentime everyday_starttime = t.saleDate[0];
@@ -729,7 +739,7 @@ public:
 
             for(int j = 0; j < t.stationNum; ++j) { // 按车站和出发时间（含天）列入Database_stations
 //                cout << t.stations[j] << " " << t.leaving[j].plusdate(everyday_starttime.date).get() << " " << runtimeID << " " << j << endl;
-                Database_stations.insert(type_stationName_startTime(t.stations[j], t.leaving[j].plusdate(everyday_starttime.date)), std::make_pair(type_trainID(runtimeID), j));
+                Database_stations.insert(type_stationName_startTime(t.stations[j], t.leaving[j].plusdate(everyday_starttime.date), t_release.runtimeID), std::make_pair(type_trainID(runtimeID), j));
 
             }
             everyday_starttime.add_date(1);
@@ -842,7 +852,7 @@ public:
         if(startS == endS) return "0";
 
         // 思路：查询当天经过起始站的车次ID，在Trains中查出车次信息，找到之后经过到达站的车次，存入list中排序
-        auto st = Database_stations.range(type_stationName_startTime(startS.c_str(), date), type_stationName_startTime(startS.c_str(), date + 1439));
+        auto st = Database_stations.range(type_stationName_startTime(startS.c_str(), date, MINID), type_stationName_startTime(startS.c_str(), date + 1439, MAXID));
         if(st.empty()) return "0";
         train_return this_t;
         type_train_tnc *list = new type_train_tnc[st.size()]; // 此处有new
@@ -913,8 +923,8 @@ public:
         if(startS == endS) return "0";
         // st查询起始站对应有哪些车次，et查询从当天至世界末日终点站对应有哪些车次
         // 思路：枚举st车次经过的站点，枚举et逆向经过的站点，两者对应且符合时间先后则可行
-        auto st = Database_stations.range(type_stationName_startTime(startS.c_str(), date), type_stationName_startTime(startS.c_str(), date + 1439));
-        auto et = Database_stations.range(type_stationName_startTime(endS.c_str(), date), type_stationName_startTime(endS.c_str(), datentime("23:59", "12-31")));
+        auto st = Database_stations.range(type_stationName_startTime(startS.c_str(), date, MINID), type_stationName_startTime(startS.c_str(), date + 1439, MAXID));
+        auto et = Database_stations.range(type_stationName_startTime(endS.c_str(), date, MINID), type_stationName_startTime(endS.c_str(), datentime("23:59", "12-31"), MAXID));
         if(st.empty() || et.empty()) return "0";
         type_train_transfer_tnc choosed_transfer;
         for(auto & it_1 : st) {
@@ -1050,9 +1060,7 @@ public:
         o.leavingTime = t.leaving[p].plusdate(startdate.date);
         o.arrivingTime = t.arriving[q].plusdate(startdate.date);
 
-        release_return this_t_release = Trains_released.query(ID_with_date);
-        if(!this_t_release.first) throw unknown_wrong();
-        type_train_release t_release = this_t_release.second;
+        type_train_release t_release = get_release(ID_with_date);
         int seats_available = t_release.queryseats(p, q);
         if(seats_available < o.num) {
             if(flag && o.num <= t.seatNum) { // -q为true且票数不大于总座位数时加入候补队列
@@ -1061,10 +1069,10 @@ public:
 
                 o._type = pending;
                 o.totalID = totalID_runtime;
-                type_user u = this_u.second;
+                type_user &u = this_u.second;
                 type_userName_orderID neworder_key(o.userName, ++u.orderNum);
                 Database_orders.insert(neworder_key, o); // 添加Database_orders
-                Users.modify(this_u.second.userName, this_u.second, u); // 更新该用户的orderNum
+                Users.modify(this_u.second.userName, u); // 更新该用户的orderNum
 
                 Database_queue.insert(type_queue_key(ID_with_date.c_str(), totalID_runtime), neworder_key); // 进入queue
                 ans = "queue";
@@ -1076,12 +1084,12 @@ public:
             o._type = success;
             o.totalID = totalID_runtime;
             long long total_cost = (long long)o.num * o.price;
-            type_user u = this_u.second;
+            type_user &u = this_u.second;
             type_userName_orderID neworder_key(o.userName, ++u.orderNum);
             Database_orders.insert(neworder_key, o); // 添加Database_orders
-            Users.modify(this_u.second.userName, this_u.second, u); // 更新该用户的orderNum
+            Users.modify(this_u.second.userName, u); // 更新该用户的orderNum
             t_release.buy(p, q, o.num); // 改变座位数
-            Trains_released.modify(ID_with_date, this_t_release.second, t_release); // 更新该车次的信息
+            Trains_released.modify(ID_with_date, t_release); // 更新该车次的信息
 
             ans = std::to_string(total_cost);
         }
@@ -1149,15 +1157,14 @@ public:
 
         type_order o_refund = this_o.second;
         o_refund._type = refunded;
-        Database_orders.modify(type_userName_orderID(this_u.second.userName, which_order), this_o.second, o_refund);
+        Database_orders.modify(type_userName_orderID(this_u.second.userName, which_order), o_refund);
         if(this_o.second._type == pending) { // 若为pending，则删去该候补
             Database_queue.erase(type_queue_key(o_refund.runtimeID, o_refund.totalID), type_userName_orderID(this_u.second.userName, which_order));
             return "0";
         }
         // 为success，退票
         type_train_release t_release = get_release(o_refund.runtimeID);
-        auto renew_t_release = t_release;
-        renew_t_release.refund(o_refund.startNum, o_refund.endNum, o_refund.num); // 退票，座位复原
+        t_release.refund(o_refund.startNum, o_refund.endNum, o_refund.num); // 退票，座位复原
 
         auto queue = Database_queue.range(type_queue_key(o_refund.runtimeID, 1), type_queue_key(o_refund.runtimeID, totalID_runtime));
         for(auto &key: queue) {
@@ -1165,16 +1172,15 @@ public:
             if(!o_return.first) throw unknown_wrong();
             auto o_todo = o_return.second;
             if(o_refund.startNum > o_todo.endNum || o_refund.endNum < o_todo.startNum) continue; // 未修改相应车站区间，则不必考虑
-            int seats_remained = renew_t_release.queryseats(o_todo.startNum, o_todo.endNum);
+            int seats_remained = t_release.queryseats(o_todo.startNum, o_todo.endNum);
             if(seats_remained >= o_todo.num) { // 候补购票成功
-                type_order neworder = o_todo;
-                neworder._type = success;
-                Database_orders.modify(key, o_todo, neworder); // 更改相应用户的order
+                o_todo._type = success;
+                Database_orders.modify(key, o_todo); // 更改相应用户的order
                 Database_queue.erase(type_queue_key(o_refund.runtimeID, o_todo.totalID), key); // 删去该候补
-                renew_t_release.buy(o_todo.startNum, o_todo.endNum, o_todo.num); // 购买车票
+                t_release.buy(o_todo.startNum, o_todo.endNum, o_todo.num); // 购买车票
             }
         }
-        Trains_released.modify(o_refund.runtimeID, t_release, renew_t_release);
+        Trains_released.modify(o_refund.runtimeID, t_release);
         return "0";
     }
 
@@ -1187,6 +1193,7 @@ public:
         Trains_released.clear();
         Database_stations.clear();
         Database_orders.clear();
+        Database_queue.clear();
         return "0";
     }
 
