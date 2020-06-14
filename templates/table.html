@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <head>
-    <title>User Profile</title>
+    <title>{{title}}</title>
     <link rel="stylesheet" href="../static/css/mdui.min.css">
     <script src="../static/js/mdui.min.js"></script>
 </head>
@@ -96,13 +96,35 @@
 
 <div class="mdui-container">
     <div class="mdui-typo">
-        <div class="mdui-typo-headline mdui-text-color-indigo">User Profile</div>
-        <div class="mdui-typo-subheading mdui-text-color-black">
-            Username: {{ret[0]}}<br>
-            Name: {{ret[1]}}<br>
-            Mail Address: {{ret[2]}}<br>
-            Privilege: {{ret[3]}}<br>
+        <div class="mdui-typo-headline mdui-text-color-indigo">{{title}}</div>
+        <div class="mdui-typo-title mdui-text-color-black">
+            {% if title == 'Train' %}
+                Train ID: {{ret[0][0]}}<br>
+                Train Type: {{ret[0][1]}}<br>
+            {% endif %}
+            {% if title == 'Ticket' or title == 'Transfer' %}
+                Start Station: {{ret[0][0]}}<br>
+                Target Station: {{ret[0][1]}}<br>
+                Date: {{ret[0][2]}}<br>
+            {% endif %}
+            {% if title == 'Order' %}
+                Current User: {{username}}<br>
+            {% endif %}
         </div>
+        <table border="1">
+            <tr>
+                {% for x in table_head %}
+                <td>{{x}}</td>
+                {% endfor %}
+            </tr>
+            {% for i in range(1, ret_len) %}
+            <tr>
+                {% for j in col_list %}
+                <td>{{ret[i][j]}}</td>
+                {% endfor %}
+            </tr>
+            {%endfor%}
+        </table>
     </div>
 </div>
 </body>

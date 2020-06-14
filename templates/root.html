@@ -18,72 +18,73 @@
 
     <div class="mdui-drawer" id="main-drawer">
         {% if not flag %}
-            <ul class="mdui-list" mdui-collapse="{accordion: true}">
-                <a href="/">
-                    <li class="mdui-list-item mdui-ripple">
-                        <i class="mdui-list-item-icon mdui-icon material-icons">dashboard</i>
-                        <div class="mdui-list-item-content">Control Panel</div>
-                    </li>
-                </a>
-                <li class="mdui-collapse-item">
-                    <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
-                        <i class="mdui-list-item-icon mdui-icon material-icons">account_box</i>
-                        <div class="mdui-list-item-content">User Management</div>
-                        <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
-                    </div>
-                    <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
-                        <a href="/query_profile"><li class="mdui-list-item mdui-ripple">Query Profile</li></a>
-                        <a href="/add_user"><li class="mdui-list-item mdui-ripple">Add User</li></a>
-                        <a href="/modify_profile"><li class="mdui-list-item mdui-ripple">Modify Profile</li></a>
-                    </ul>
+        <ul class="mdui-list" mdui-collapse="{accordion: true}">
+            <a href="/">
+                <li class="mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">dashboard</i>
+                    <div class="mdui-list-item-content">Control Panel</div>
                 </li>
-                <li class="mdui-collapse-item">
-                    <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
-                        <i class="mdui-list-item-icon mdui-icon material-icons">train</i>
-                        <div class="mdui-list-item-content">Train Schedule</div>
-                        <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
-                    </div>
-                    <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
-                        <a href="/add_train"><li class="mdui-list-item mdui-ripple">Add Train</li></a>
-                        <a href="/release_train"><li class="mdui-list-item mdui-ripple">Release Train</li></a>
-                        <a href="/query_train"><li class="mdui-list-item mdui-ripple">Query Train</li></a>
-                        <a href="/delete_train"><li class="mdui-list-item mdui-ripple">Delete Train</li></a>
-                    </ul>
-                </li>
-                <li class="mdui-collapse-item">
-                    <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
-                        <i class="mdui-list-item-icon mdui-icon material-icons">shopping_cart</i>
-                        <div class="mdui-list-item-content">Buy Tickets</div>
-                        <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
-                    </div>
-                    <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
-                        <a href="/query_ticket"><li class="mdui-list-item mdui-ripple">Query Ticket</li></a>
-                        <a href="/query_transfer"><li class="mdui-list-item mdui-ripple">Query Transfer</li></a>
-                        <a href="/query_order"><li class="mdui-list-item mdui-ripple">Query Order</li></a>
-                        <a href="/refund_ticket"><li class="mdui-list-item mdui-ripple">Refund Ticket</li></a>
-                    </ul>
-                </li>
-                <li class="mdui-collapse-item">
-                    <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
-                        <i class="mdui-list-item-icon mdui-icon material-icons">desktop_windows</i>
-                        <div class="mdui-list-item-content">System Admin</div>
-                        <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
-                    </div>
-                    <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
-                        <a href="/clean"><li class="mdui-list-item mdui-ripple">Clear Data</li></a>
-                        <a href="/shutdown"><li class="mdui-list-item mdui-ripple">Shutdown System</li></a>
-                    </ul>
-                </li>
-            </ul>
+            </a>
+            <li class="mdui-collapse-item">
+                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">account_box</i>
+                    <div class="mdui-list-item-content">User Management</div>
+                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                </div>
+                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                    <a href="/query_profile"><li class="mdui-list-item mdui-ripple">Query Profile</li></a>
+                    <a href="/add_user"><li class="mdui-list-item mdui-ripple">Add User</li></a>
+                    <a href="/modify_profile"><li class="mdui-list-item mdui-ripple">Modify Profile</li></a>
+                </ul>
+            </li>
+            <li class="mdui-collapse-item">
+                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">train</i>
+                    <div class="mdui-list-item-content">Train Schedule</div>
+                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                </div>
+                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                    <a href="/add_train"><li class="mdui-list-item mdui-ripple">Add Train</li></a>
+                    <a href="/release_train"><li class="mdui-list-item mdui-ripple">Release Train</li></a>
+                    <a href="/query_train"><li class="mdui-list-item mdui-ripple">Query Train</li></a>
+                    <a href="/delete_train"><li class="mdui-list-item mdui-ripple">Delete Train</li></a>
+                </ul>
+            </li>
+            <li class="mdui-collapse-item">
+                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">shopping_cart</i>
+                    <div class="mdui-list-item-content">Buy Tickets</div>
+                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                </div>
+                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                    <a href="/query_ticket"><li class="mdui-list-item mdui-ripple">Query Ticket</li></a>
+                    <a href="/query_transfer"><li class="mdui-list-item mdui-ripple">Query Transfer</li></a>
+                    <a href="/buy_ticket"><li class="mdui-list-item mdui-ripple">Buy Ticket</li></a>
+                    <a href="/query_order"><li class="mdui-list-item mdui-ripple">Query Order</li></a>
+                    <a href="/refund_ticket"><li class="mdui-list-item mdui-ripple">Refund Ticket</li></a>
+                </ul>
+            </li>
+            <li class="mdui-collapse-item">
+                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">desktop_windows</i>
+                    <div class="mdui-list-item-content">System Admin</div>
+                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                </div>
+                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                    <a href="/clean"><li class="mdui-list-item mdui-ripple">Clear Data</li></a>
+                    <a href="/shutdown"><li class="mdui-list-item mdui-ripple">Shutdown System</li></a>
+                </ul>
+            </li>
+        </ul>
         {% else %}
-            <ul class="mdui-list" mdui-collapse="{accordion: true}">
-                <a href="/login">
-                    <li class="mdui-list-item mdui-ripple">
-                        <i class="mdui-list-item-icon mdui-icon material-icons">account_box</i>
-                        <div class="mdui-list-item-content">Login</div>
-                    </li>
-                </a>
-            </ul>
+        <ul class="mdui-list" mdui-collapse="{accordion: true}">
+            <a href="/login">
+                <li class="mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">account_box</i>
+                    <div class="mdui-list-item-content">Login</div>
+                </li>
+            </a>
+        </ul>
         {% endif %}
     </div>
 
@@ -103,6 +104,7 @@
                     <div class="mdui-typo-headline mdui-text-color-indigo">Buy Tickets</div>
                     <a href="/query_ticket"><button class="mdui-btn mdui-ripple mdui-color-green">Query Ticket</button></a>
                     <a href="/query_transfer"><button class="mdui-btn mdui-ripple mdui-color-green">Query Transfer</button></a>
+                    <a href="/buy_ticket"><button class="mdui-btn mdui-ripple mdui-color-green">Buy Ticket</button></a>
                     <a href="/query_order"><button class="mdui-btn mdui-ripple mdui-color-green">Query Order</button></a>
                     <a href="/refund_ticket"><button class="mdui-btn mdui-ripple mdui-color-green">Refund Ticket</button></a><br>
                     <div class="mdui-typo-headline mdui-text-color-indigo">System Administration</div>

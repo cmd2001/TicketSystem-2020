@@ -6,6 +6,14 @@
 
 ## Master Changelog From 2020.06.11(众所周知这是个栈)
 
+### 2020.06.14
+
+修改`b+`树的`modify`函数接口。
+
+前端基本完成。
+
+# 警告：明天再不能通过`basic`测试的话，我们可能要解体了
+
 ### 2020.06.13
 
 后端`Ctrl+C`不再导致数据损毁
@@ -25,7 +33,7 @@
 删除了测试数据(导致评测超时)和根目录中的`main.cpp`
 
 
-##Todo
+## Todo
 
 #### Backend
 
@@ -39,10 +47,12 @@
 
 - [ ] `modify_profile`不可用
 
-- [ ] 所有需要多行输出的操作`(query_train, query_order, query_transfer, query_ticket)`
+- [x] 所有需要多行输出的操作`(query_train, query_order, query_transfer, query_ticket)`
 
 - [ ] 输入合法性检查
 
 - [ ] 美化(添加图片等)
 
 - [ ] 细节调整：显示用户`name`而不是`username`
+
+- [ ] 易用性优化

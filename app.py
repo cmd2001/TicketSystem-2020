@@ -117,7 +117,7 @@ def query_train():
     ret = ticket.query_train(form['trainID'], form['date'])
     if ret == -1:
         render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.query_train_form, form_path = '/query_train', title = 'Query Train')
-    return render_template('query_train.html', ret = ret)
+    return render_template('table.html', username = getUsername(), title = 'Train', ret = ret, ret_len = len(ret), table_head = Constant.query_train_table_head, col_list = Constant.query_train_list)
 
 @app.route('/delete_train', methods=("GET", "POST"))
 def delete_train():
@@ -138,7 +138,7 @@ def query_ticket():
     ret = ticket.query_ticket(form['time'], form['start'], form['end'], form['sort_param'])
     if ret == -1:
         render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.query_ticket_form, form_path = '/query_ticket', title = 'Query Ticket')
-    return render_template('query_ticket.html', ret = ret)
+    return render_template('table.html', username = getUsername(), title = 'Ticket', ret = ret, ret_len = len(ret), table_head = Constant.query_ticket_table_head, col_list = Constant.query_ticket_list)
 
 @app.route('/query_transfer', methods=("GET", "POST"))
 def query_transfer():
@@ -146,7 +146,10 @@ def query_transfer():
         return render_template('form.html', username = getUsername(), form = Constant.query_transfer_form, form_path = '/query_transfer', title = 'Query Transfer')
     form = request.form.to_dict()
     ret = ticket.query_transfer(form['time'], form['start'], form['end'], form['sort_param'])
-    return render_template('query_transfer.html', ret = ret)
+    if ret == -1:
+        render_template('form.html', username = getUsername(), message = 'Failed!', form = Constant.query_transfer_form, form_path = '/query_ticket', title = 'Query Transfer')
+    return render_template('table.html', username = getUsername(), title = 'Transfer', ret = ret, ret_len = len(ret), table_head = Constant.query_transfer_table_head, col_list = Constant.query_transfer_list)
+
 
 @app.route('/buy_ticket', methods=("GET", "POST"))
 def buy_ticket():
@@ -164,7 +167,8 @@ def buy_ticket():
 @app.route('/query_order')
 def query_order():
     ret = ticket.query_order(getUsername()) # it can never be -1
-    return render_template('query_order.html', ret = ret)
+    return render_template('table.html', username = getUsername(), title = 'Order', ret = ret, ret_len = len(ret), table_head = Constant.query_order_table_head, col_list = Constant.query_order_list)
+
 
 @app.route('/refund_ticket', methods=("GET", "POST"))
 def refund_ticket():
