@@ -7,7 +7,8 @@
 #include <cstring>
 #include <cmath>
 #include <string>
-#include "../include/List.h"
+#include <fstream>
+#include "../include/List.hpp"
 
 template <typename Key>
 bool isequal(const Key&a,const Key &b){
@@ -21,7 +22,7 @@ private:
     static const int maxKeyNum=16;
     static const int miniKeyNum=maxKeyNum/2;
     static const int MaxSize=maxKeyNum+2;
-    fstream Fileio;
+    std::fstream Fileio;
 
 private:
     /*key number is 0-base
@@ -492,8 +493,8 @@ public:
         if (newNode == nullptr)
             return nullptr;
         else {
-            if (t->isLeaf == 0)	return eraseBlockidx((idxNode *)newNode, t);
-            else return eraseBlockdata((dataNode *)newNode, t);
+            if (t->isLeaf == 0)	return eraseBlockidx((idxNode*)newNode, t);
+            else return eraseBlockdata((dataNode*)newNode, t);
         }
     }
     /*erase in leaf
@@ -628,7 +629,6 @@ public:
                     t->key[j] = t->key[j + 1];
                     t->offset[j + 1] = t->offset[j + 2];
                 }
-
                 Fileio.seekp(t->offset[i - 1], ios::beg);
                 Fileio.write(reinterpret_cast<char *>(pre), idxNodeSize);
                 Fileio.flush();
@@ -651,7 +651,7 @@ public:
         else min = miniKeyNum;
 
         int i;
-        for (i = t->keyNum; i > 0 && n->key[0] < t->key[i - 1]; --i);
+        for (i = t->keyNum; i > 0 && n->key[0] < t->key[i - 1]; --i){}
 
         if (i != t->keyNum) {
             dataNode *next = new dataNode;
@@ -680,7 +680,9 @@ public:
                     n->key[n->keyNum + j] = next->key[j];
                     n->data[n->keyNum + j] = next->data[j];
                 }
+                //cout<<n->keyNum<<endl;
                 n->keyNum += next->keyNum;
+                //cout<<n->keyNum<<endl;
                 n->nextoffset = next->nextoffset;
 
                 t->keyNum--;
@@ -814,8 +816,8 @@ public:
             root = new idxNode;
             root->keyNum += 2;
             root->miniKey = t->miniKey;
-            root->key[0] = t->miniKey;
-            root->key[1] = q->miniKey;  //todo???
+           // root->key[0] = t->miniKey;
+            root->key[0] = q->miniKey;  //fix it
             root->offset[0] = _offset;
             root->offset[1] = _offset + idxNodeSize;
             Fileio.seekp(2 * sizeof(int) + dataNodeSize, ios::beg);
@@ -843,7 +845,7 @@ public:
         List<Value> newList;
         auto now=Lower_bound(k1);
         //加入valid的终止条件 免得陷入死循环 草 被坑惨了
-        while((now.key()<k2||now.key()==k2)&&now.valid()){
+        while((!k2<now.key())&&now.valid()){
             newList.push_back(now.value());
             //cout<<now.value()<<endl;
             now++;
@@ -851,8 +853,8 @@ public:
         return newList;
     }
     bool erase(const Key &k){
-        if(!find(k)) return false;
         if(root->keyNum==-1) return false;
+        if(!find(k)) return false;
         idxNode* r=Eraseidx(k,root);
         if(r!= nullptr){
             if(r->keyNum!=0){
