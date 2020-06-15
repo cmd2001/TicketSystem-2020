@@ -1,13 +1,14 @@
 #ifndef TICKET_CLASS_HPP
 #define TICKET_CLASS_HPP
 
-#include "../BPlusTree/database_test.hpp"
+#include "../BPlusTree/database.hpp"
 #include "exceptions.hpp"
 #include "tools.hpp"
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <cmath>
 
 using std::cin;
@@ -336,13 +337,13 @@ public:
         }
     };
 
-    database_test<type_userName, type_user> Users;
-    database_test<type_userName, int> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
-    database_test<type_trainID, type_train> Trains_base;
-    database_test<type_trainID, type_train_release> Trains_released;
-    database_test<type_stationName_startTime, std::pair<type_trainID, int>> Database_stations; // 按车站和出发时间记录车次和该站编号
-    database_test<type_userName_orderID, type_order> Database_orders;
-    database_test<type_queue_key, type_userName_orderID> Database_queue; // 候补队列，value为order_key和totalID
+    database<type_userName, type_user> Users;
+    database<type_userName, int> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
+    database<type_trainID, type_train> Trains_base;
+    database<type_trainID, type_train_release> Trains_released;
+    database<type_stationName_startTime, std::pair<type_trainID, int>> Database_stations; // 按车站和出发时间记录车次和该站编号
+    database<type_userName_orderID, type_order> Database_orders;
+    database<type_queue_key, type_userName_orderID> Database_queue; // 候补队列，value为order_key和totalID
     int totalID_runtime; // 运行时的总orderID，在退出时写入文件file_totalID
 
 private:
@@ -502,7 +503,7 @@ public:
         if(!vis) throw illegal_arg();
         if(!in_cur.first) return "-1";
 
-        Cur_users.erase(username, 0);
+        Cur_users.erase(username);
         return "0";
     }
 
@@ -812,7 +813,7 @@ public:
         }
         this_t = Trains_base.query(trainID);
         if(!this_t.first || this_t.second.is_released) return "-1"; // 不存在或已发行
-        Trains_base.erase(trainID, this_t.second);
+        Trains_base.erase(trainID);
         return "0";
     }
 
@@ -855,7 +856,7 @@ public:
         auto st = Database_stations.range(type_stationName_startTime(startS.c_str(), date, MINID), type_stationName_startTime(startS.c_str(), date + 1439, MAXID));
         if(st.empty()) return "0";
         train_return this_t;
-        type_train_tnc *list = new type_train_tnc[st.size()]; // 此处有new
+        auto *list = new type_train_tnc[st.size()]; // 此处有new
         int cnt = 0;
         // for(it = st.begin(); it != st.end(); ++it) {
         //     cout << (*it).first << " " << (*it).second << endl;
@@ -874,7 +875,11 @@ public:
                 const type_train_release t_release = get_release(trainID);
                 int price = t.pre_prices[i] - t.pre_prices[it.second], seats = t_release.queryseats(it.second, i);
                 // 先把输出信息写好存进string
-                string out = (string)t.trainID + " " + startS + " " + t.leaving[it.second].plusdate(t_release.startdate.date).get() + " -> " + endS + " " + t.arriving[i].plusdate(t_release.startdate.date).get() + " " + std::to_string(price) + " " + std::to_string(seats);
+                    string out;
+                    out = (string) t.trainID + " " + startS + " " +
+                          t.leaving[it.second].plusdate(t_release.startdate.date).get() + " -> " + endS + " " +
+                          t.arriving[i].plusdate(t_release.startdate.date).get() + " " + std::to_string(price) + " " +
+                          std::to_string(seats);
                 list[cnt++] = type_train_tnc(out, t.trainID, t.arriving[i] - t.leaving[it.second], price);
                 break;
             }
@@ -1159,7 +1164,7 @@ public:
         o_refund._type = refunded;
         Database_orders.modify(type_userName_orderID(this_u.second.userName, which_order), o_refund);
         if(this_o.second._type == pending) { // 若为pending，则删去该候补
-            Database_queue.erase(type_queue_key(o_refund.runtimeID, o_refund.totalID), type_userName_orderID(this_u.second.userName, which_order));
+            Database_queue.erase(type_queue_key(o_refund.runtimeID, o_refund.totalID));
             return "0";
         }
         // 为success，退票
@@ -1176,7 +1181,7 @@ public:
             if(seats_remained >= o_todo.num) { // 候补购票成功
                 o_todo._type = success;
                 Database_orders.modify(key, o_todo); // 更改相应用户的order
-                Database_queue.erase(type_queue_key(o_refund.runtimeID, o_todo.totalID), key); // 删去该候补
+                Database_queue.erase(type_queue_key(o_refund.runtimeID, o_todo.totalID)); // 删去该候补
                 t_release.buy(o_todo.startNum, o_todo.endNum, o_todo.num); // 购买车票
             }
         }
