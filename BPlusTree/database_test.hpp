@@ -57,7 +57,7 @@ public:
         in.close(),out.close();
     }
 
-    bool erase(Key K,Value V){
+    bool erase(const Key &K){
         ifstream in(Filename,ios::binary|ios::in);
         if(!in){cerr<<"erase F open error"<<endl;}
 
@@ -68,7 +68,7 @@ public:
         bool flag=false;
         in.read(reinterpret_cast<char*>(&P),sizeof(P));
         while(!in.eof()){
-            if(Isequal(K,P.first)&&V==P.second){
+            if(Isequal(K,P.first)){
                 flag=true;
                 in.read(reinterpret_cast<char*>(&P),sizeof(P));
                 continue;
