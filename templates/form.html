@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+
+<head>
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="../static/css/mdui.min.css">
+    <script src="../static/js/mdui.min.js"></script>
+</head>
+
+<body class="mdui-appbar-with-toolbar mdui-drawer-body-left">
+    {% if message %}
+        <script type="text/javascript">
+            alert("{{message}}")
+        </script>
+    {% endif %}
+
+    <div class="mdui-appbar mdui-appbar-fixed mdui-toolbar mdui-color-indigo">
+        <span class="mdui-btn mdui-btn-icon mdui-ripple mdui-ripple-white" mdui-drawer="{target: '#main-drawer', swipe: true}"><i class="mdui-icon material-icons">menu</i></span>
+        <a href="/"><span class="mdui-typo-title">Ticket System 2020</span></a>
+        <div class="mdui-toolbar-spacer"></div>
+        {% if not flag %}
+        <a class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">account_circle</i></a>{{username}}<a href="/logout"><button class="mdui-btn mdui-ripple mdui-color-purple">Logout</button></a>
+        {% endif %}
+    </div>
+
+    <div class="mdui-drawer" id="main-drawer">
+        {% if not flag %}
+        <ul class="mdui-list" mdui-collapse="{accordion: true}">
+            <a href="/">
+                <li class="mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">dashboard</i>
+                    <div class="mdui-list-item-content">Control Panel</div>
+                </li>
+            </a>
+            <li class="mdui-collapse-item">
+                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">account_box</i>
+                    <div class="mdui-list-item-content">User Management</div>
+                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                </div>
+                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                    <a href="/query_profile"><li class="mdui-list-item mdui-ripple">Query Profile</li></a>
+                    <a href="/add_user"><li class="mdui-list-item mdui-ripple">Add User</li></a>
+                    <a href="/modify_profile"><li class="mdui-list-item mdui-ripple">Modify Profile</li></a>
+                </ul>
+            </li>
+            <li class="mdui-collapse-item">
+                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">train</i>
+                    <div class="mdui-list-item-content">Train Schedule</div>
+                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                </div>
+                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                    <a href="/add_train"><li class="mdui-list-item mdui-ripple">Add Train</li></a>
+                    <a href="/release_train"><li class="mdui-list-item mdui-ripple">Release Train</li></a>
+                    <a href="/query_train"><li class="mdui-list-item mdui-ripple">Query Train</li></a>
+                    <a href="/delete_train"><li class="mdui-list-item mdui-ripple">Delete Train</li></a>
+                </ul>
+            </li>
+            <li class="mdui-collapse-item">
+                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">shopping_cart</i>
+                    <div class="mdui-list-item-content">Buy Tickets</div>
+                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                </div>
+                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                    <a href="/query_ticket"><li class="mdui-list-item mdui-ripple">Query Ticket</li></a>
+                    <a href="/query_transfer"><li class="mdui-list-item mdui-ripple">Query Transfer</li></a>
+                    <a href="/buy_ticket"><li class="mdui-list-item mdui-ripple">Buy Ticket</li></a>
+                    <a href="/query_order"><li class="mdui-list-item mdui-ripple">Query Order</li></a>
+                    <a href="/refund_ticket"><li class="mdui-list-item mdui-ripple">Refund Ticket</li></a>
+                </ul>
+            </li>
+            <li class="mdui-collapse-item">
+                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">desktop_windows</i>
+                    <div class="mdui-list-item-content">System Admin</div>
+                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                </div>
+                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                    <a href="/clean"><li class="mdui-list-item mdui-ripple">Clear Data</li></a>
+                    <a href="/shutdown"><li class="mdui-list-item mdui-ripple">Shutdown System</li></a>
+                </ul>
+            </li>
+        </ul>
+        {% else %}
+        <ul class="mdui-list" mdui-collapse="{accordion: true}">
+            <a href="/login">
+                <li class="mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">account_box</i>
+                    <div class="mdui-list-item-content">Login</div>
+                </li>
+            </a>
+        </ul>
+        {% endif %}
+    </div>
+
+    <div class="mdui-container">
+        <div class="mdui-typo">
+            <div class="mdui-typo-headline mdui-text-color-indigo">{{title}}</div>
+            {% if warning %}
+                <div class="mdui-typo-title-opacity mdui-text-color-red-accent">{{warning}}</div>
+            {% endif %}
+            <div class="mdui-row">
+                <div class="mdui-col-xs-6">
+                    <form role = "form" action = {{form_path}} method = "post">
+                        {% for x in form %}
+                        {% if x[3] %}
+                            <div class="mdui-textfield mdui-textfield-floating-label">
+                                <label class="mdui-textfield-label">{{x[0]}}</label>
+                                <input class="mdui-textfield-input" type="text" name = "{{x[1]}}" required = "required">
+                            </div>
+                        {% else %}
+                            <div class="mdui-textfield mdui-textfield-floating-label">
+                                <label class="mdui-textfield-label">{{x[0]}}</label>
+                                <input class="mdui-textfield-input" type="text" name = "{{x[1]}}">
+                            </div>
+                        {% endif %}
+                        {% endfor %}
+                        <br>
+                        {% if warning %}
+                            <button type="submit" class="mdui-btn mdui-ripple mdui-color-red-accent">{{title}}</button>
+                        {% else %}
+                            <button type="submit" class="mdui-btn mdui-ripple mdui-color-indigo">submit</button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

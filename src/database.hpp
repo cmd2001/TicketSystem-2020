@@ -13,13 +13,14 @@ public:
     };
     iterator begin() const {return iterator();}
     iterator end() const {return iterator();}
+    void push_back(const T &x) {}
     size_t size() const {return 0;}
 };
 
 template<typename Key, typename T>
 class Database {
 public:
-    Database() {}
+    Database(const string &s) {}
     void insert(const Key &k, const T &t) {}
     void erase(const Key &k, const T &t) {}
     std::pair<bool, T> query(const Key &k) { return std::make_pair(1, T()); }

@@ -2,7 +2,7 @@
 
 ## 人员分工
 
-暂定将将整体项目分为三个子部分，分别为：(后面填对应GitHub id)
+暂定将将整体项目分为三个子部分，分别为：
 
 前端&文档(人员A)：Amagi_Yukisaki
 
@@ -41,11 +41,11 @@ B --> F(前端GUI)
 
 `Database<type1, type2>(Filename)`：创建`Key`类型为`type1`，`Value`类型为`type2`的Database类并打开名为`Filename`的数据库文件。
 
-`insert(Key, Value)`：向B+树内插入`(Key, Value)`键值。`Key`为定义了`<`运算的可排序类，`Value`为定义了`==`运算的可比较类，`Value`为定长类型（即：不同的`sizeof Value`为不变常数）。**注意：不同元素的`Key`可以重复！**
+`insert(Key, Value)`：向B+树内插入`(Key, Value)`键值。`Key`为定义了`<`运算的可排序类，`Value`为定义了`==`运算的可比较类，`Key, Value`为定长类型（即：不同的`sizeof Key, sizeof Value`为不变常数）。**注意：不同元素的`Key`不会重复！**
 
 `erase(Key, Value)`：删除`(Key, Value)`键值，返回值为布尔型，表示是否删除成功。**（如果找不到相应元素则返回删除失败）**
 
-`modify(Key, Old_value, New_value)`：将`(Key, Old_Value)`修改为`(Key, New_value)`，返回值为布尔型，表示是否修改成功。失败条件同上。
+`modify(Key, New_value)`：将`(Key, Old_Value)`修改为`(Key, New_value)`，返回值为布尔型，表示是否修改成功。失败条件同上。
 
 `query(Key)`：查询`Key`对应的`Value`。**保证此时的Key不出现重复** 返回`std::pair<bool, typeof Value>`，表示查询是否成功及查询到的`Value`值。失败条件同上。
 
@@ -53,38 +53,46 @@ B --> F(前端GUI)
 
 `clear()`：清空名为`Filename`的数据库文件。
 
+`empty()`：返回bool类型，表示该数据库是否为空。
+
 ### `core.hpp`
 
 实现`Ticket`类。
 
 其中包含以下数据成员：
 
-`Database<type_username, type_user> Users(file_users);`
+`database<type_userName, type_user> Users; // 用户的的相关信息`
 
-`Database<type_username, type_username> Cur_users(file_cur_users);`
+`database<type_userName, int> Cur_users; // 仅判断是否已登录（value恒为0），查询详细信息还要在Users中查询 `
 
-`Database<type_trainID, type_train> Trains_unreleased(file_unreleased), Trains(file_trains);`
+`database<type_trainID, type_train> Trains_base; // 列车的基本信息`
 
-`Database<type_stationName_startTime, type_trainID> Stations(file_statinNames);`
+`database<type_trainID, type_train_release> Trains_released; // 已发布列车的车票信息等`
 
-`Database<type_userID_orderID, type_order> Orders(file_orders)`
+`database<type_stationName_startTime, std::pair<type_trainID, int>> Database_stations; // 用于查询某天进过某车站的列车有哪些`
 
-`type_user`类中存储一个用户T的全部信息，`type_train`类中存储一次列车的全部信息。
+`database<type_userName_orderID, type_order> Database_orders; // 各用户的订单信息`
 
-`type_train`需包含函数`query(st, ed)`，返回区间`(st, ed)`最大U可用票数。
+`database<type_queue_key, type_userName_orderID> Database_queue; // 候补队列`
+
+详细解释（不重要）：
+
+`type_trainID`和`type_userName`是封装好的定长字符串。
+
+`type_user`类中存储一个用户T的全部信息，`type_train`类中存储一辆列车的全部信息。
+
+`type_train_release`需包含函数`query(st, ed)`，返回区间`(st, ed)`最大可用票数。
 
 `type_stationName_startTime`存储某列车经过的车站和它经过这个车站的时间，**即使没有剩余座位的列车也要存储**。
 
-`type_userID_orderID`存储用户`id`和该用户的订单`id`（对每个用户从1开始）。
+`Database_stations`的value为一个std::pair，分别是该车次的runtimeID和该站在这个车次中的编号（0-base）。
+
+`type_userName_orderID`存储用户`id`和该用户的订单`id`（对每个用户从1开始）。
+
+`type_order`存储一个订单的所有信息。
+
+`type_queue_key`包含车次的runtimeID和全局订单编号。
 
 包含以下函数：
 
 [TicketSystem-2020](https://github.com/oscardhc/TicketSystem-2020)所要求的全部函数。
-
-实现思路为：
-
-对于查询列车的操作，先查询出`id`，再去另一个数据库中用`id`查询该次列车全部信息。
-
-修改操作所有数据库同步！
-
-`queryTrain(id)`：返回值为`type_train`返回`train_id`为`id`的车次的全部信息。**保证查询车次一定存在**。（评测中不会涉及，前端专用）

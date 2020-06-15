@@ -6,11 +6,11 @@
 #include <cstring>
 #include <cmath>
 #include <string>
-#include "../include/List.h"
+#include "../include/List.hpp"
 #include <fstream>
 
 template <typename Key>
-bool Isequal(const Key&a,const Key &b){
+inline bool Isequal(const Key &a,const Key &b){
     return !((a<b)||(b<a));
 }
 
@@ -95,7 +95,7 @@ public:
         return true;
     };
 
-    bool modify(Key K,Value OldV,Value NewV){
+    bool modify(const Key &K, const Value &NewV){
         fstream io(Filename,ios::binary|ios::in|ios::out);
         if(!io){cerr<<"modify F open error"<<endl;}
 
@@ -105,12 +105,13 @@ public:
         size_t pos=0;
         io.read(reinterpret_cast<char*>(&P),sizeof(P));
         while(!io.eof()){
-            if(Isequal(K,P.first)&&OldV==P.second){
+            if(Isequal(K,P.first)){
                 P.second=NewV;
                 io.seekp(pos*sizeof(P));
                 io.write(reinterpret_cast<char*>(&P),sizeof(P));
+                io.flush();
                 flag=true;
-                continue;
+                break;
             }
             io.read(reinterpret_cast<char*>(&P),sizeof(P));
             pos++;
@@ -168,6 +169,12 @@ public:
         out.open(Filename, ios::trunc | ios::binary);
         out.close();
     }
+    bool empty() {
+        ifstream in(Filename, ios::binary | ios::in);
+        if(!in){cerr<<"erase F open error"<<endl;}
+        in.seekg(0, ios::end);
+        return in.tellg() == 0;
+    }
 public:
     database_test(const string &F): Filename(F) {
         ofstream out1;
@@ -176,8 +183,8 @@ public:
         out1.close();
 
         ofstream out2;
-        out2.open(F, ios::trunc | ios::binary); //create Filename and clear
-        if (!out2) { cerr << "F create error" << endl; }
+        out2.open(F, ios::in | ios::binary);
+        if (!out2) { out2.open(F, ios::trunc | ios::binary); }
         out2.close();
     }
 };

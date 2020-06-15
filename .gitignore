@@ -1,3 +1,6 @@
+# Virtual environment
+venv
+
 # Prerequisites
 *.d
 
@@ -31,6 +34,21 @@
 *.out
 *.app
 
+# Mac Os
 .DS_Store
 */.DS_Store
-try.cpp
+
+# IDE
+.vscode
+.idea
+
+# gitignore
+.gitignore
+
+# build
+Makefile
+CMakefiles
+CMakeCache.txt
+cmake_install.cmake
+code
+backend
