@@ -109,7 +109,9 @@ public:
                 P.second=NewV;
                 io.seekp(pos*sizeof(P));
                 io.write(reinterpret_cast<char*>(&P),sizeof(P));
+                io.flush();
                 flag=true;
+                break;
             }
             io.read(reinterpret_cast<char*>(&P),sizeof(P));
             pos++;
