@@ -20,7 +20,7 @@ class database{
 private:
     string Filename;
     static const int maxKeyNum=16;
-    static const int miniKeyNum=maxKeyNum/2;
+    static const int miniKeyNum=3;
     static const int MaxSize=maxKeyNum+2;
     std::fstream Fileio;
 
@@ -28,9 +28,9 @@ private:
     /*key number is 0-base
      * */
     struct idxNode{
-        int offset[MaxSize],keyNum;
-        bool isLeaf;
         Key key[MaxSize],miniKey;
+        int isLeaf;
+        int offset[MaxSize],keyNum;
 
         idxNode(){
             isLeaf=false;
@@ -38,9 +38,9 @@ private:
         }
     };
     struct dataNode{
-        int offset,nextoffset,keyNum;
         Key key[MaxSize];
         Value data[MaxSize];
+        int offset,nextoffset,keyNum;
         dataNode(){
             keyNum=0;
             nextoffset=-1;
@@ -290,7 +290,7 @@ public:
 
             Fileio.seekp(t->offset[i], ios::beg);
             Fileio.write(reinterpret_cast<char *>(p), dataNodeSize);
-            //Fileio.flush();
+            Fileio.flush();
             delete p;
         }else{
             Fileio.seekg(t->offset[i], ios::beg);
@@ -303,7 +303,7 @@ public:
 
             Fileio.seekp(t->offset[i], ios::beg);
             Fileio.write(reinterpret_cast<char *>(p), idxNodeSize);
-
+            Fileio.flush();
             delete p;
         }
         if(newNode== nullptr) return nullptr;
@@ -461,7 +461,7 @@ public:
 
         if (!t->isLeaf) {
             Fileio.seekg(t->offset[i], ios::beg);
-            idxNode *p = new idxNode;
+            auto *p = new idxNode;
             Fileio.read(reinterpret_cast<char *>(p), idxNodeSize);
             newNode = Eraseidx(k, p);
 
@@ -470,13 +470,13 @@ public:
 
             Fileio.seekp(t->offset[i], ios::beg);
             Fileio.write(reinterpret_cast<char *>(p), idxNodeSize);
-            Fileio.flush();
+            //Fileio.flush();
 
-            if(newNode== nullptr) delete p;
+            delete p;
 
         } else {
             Fileio.seekg(t->offset[i], ios::beg);
-            dataNode *p = new dataNode;
+            auto *p = new dataNode;
             Fileio.read(reinterpret_cast<char *>(p), dataNodeSize);
             newNode = Erasedata(k, p);
 
@@ -485,9 +485,9 @@ public:
 
             Fileio.seekp(t->offset[i], ios::beg);
             Fileio.write(reinterpret_cast<char *>(p), dataNodeSize);
-            Fileio.flush();
+            //Fileio.flush();
 
-            if(newNode== nullptr) delete p;
+            delete p;
 
         }
         if (newNode == nullptr)
@@ -501,7 +501,7 @@ public:
      * */
     dataNode* Erasedata(const Key&k, dataNode*t){
         int i;
-        bool flag = false;
+        bool flag = 0;
         for (i = 0; i < t->keyNum; ++i) {
             if (isequal(t->key[i],k)) {
                 flag = 1;
@@ -573,7 +573,7 @@ public:
                 n->keyNum += next->keyNum + 1;
 
                 t->keyNum--;
-                for (int j = i; j < t->keyNum; j++) {
+                for (j = i; j < t->keyNum; j++) {
                     t->key[j] = t->key[j + 1];
                     t->offset[j + 1] = t->offset[j + 2];
                 }
@@ -625,7 +625,7 @@ public:
                 pre->keyNum += n->keyNum + 1;
 
                 t->keyNum--;
-                for (int j = i - 1; j < t->keyNum; j++) {
+                for (j = i - 1; j < t->keyNum; j++) {
                     t->key[j] = t->key[j + 1];
                     t->offset[j + 1] = t->offset[j + 2];
                 }
@@ -669,6 +669,7 @@ public:
                 }
                 t->key[i] = next->key[0];
                 t->key[i - 1] = n->key[0];
+                cout<<t->isLeaf<<endl;
                 Fileio.seekp(t->offset[i], ios::beg);
                 Fileio.write(reinterpret_cast<char *>(n), dataNodeSize);
                 Fileio.seekp(t->offset[i + 1], ios::beg);
@@ -680,9 +681,9 @@ public:
                     n->key[n->keyNum + j] = next->key[j];
                     n->data[n->keyNum + j] = next->data[j];
                 }
-                //cout<<n->keyNum<<endl;
+                cout<<n->keyNum<<endl;
                 n->keyNum += next->keyNum;
-                //cout<<n->keyNum<<endl;
+                cout<<n->keyNum<<endl;
                 n->nextoffset = next->nextoffset;
 
                 t->keyNum--;
@@ -852,7 +853,9 @@ public:
         }
         return newList;
     }
+
     bool erase(const Key &k){
+        //Print();
         if(root->keyNum==-1) return false;
         if(!find(k)) return false;
         idxNode* r=Eraseidx(k,root);
@@ -868,6 +871,79 @@ public:
         return true;
     }
 
+    /*
+     * void erase(const Key &_k) {
+        //if (root->keyNum != -1) {
+            idxNode *r =Eraseidx(_k, root);
+            if (r != nullptr) {
+                if (r->keyNum != 0) {
+                    Fileio.seekg(root->offset[0], std::ios::beg);
+                    Fileio.read(reinterpret_cast<char *>(root), idxNodeSize);
+                }
+                Fileio.seekp(2 * sizeof(int) + dataNodeSize, std::ios::beg);
+                Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
+                Fileio.flush();
+            }
+       // }
+    }
+     */
+
+
+    void Print() {
+            puts("-------------------------Print Tree----------------------------------");
+            Printidx(*root);
+            puts("--------------------------End Tree-----------------------------------");
+        }
+        void Printidx(const idxNode &t) {
+            putchar('{');
+            printidx(t);
+            if (!t.isLeaf) {
+                for (int i = 0; i <= t.keyNum; i++) {
+                    idxNode p;
+                    Fileio.seekg(t.offset[i]);
+                    Fileio.read(reinterpret_cast<char *>(&p), idxNodeSize);
+                    Printidx(p);
+                }
+            }
+            else {
+                for (int i = 0; i <= t.keyNum; i++) {
+                    dataNode p;
+                    Fileio.seekg(t.offset[i]);
+                    Fileio.read(reinterpret_cast<char *>(&p), dataNodeSize);
+                    printdata(p);
+                }
+            }
+            puts("}\n");
+        }
+        void putData(int offset) {
+            dataNode t;
+            Fileio.seekg(offset);
+            Fileio.read(reinterpret_cast<char *>(&t), dataNodeSize);
+            puts("[");
+            printdata(t);
+            puts("]");
+        }
+        void putidx(int offset) {
+            idxNode t;
+            Fileio.seekg(offset);
+            Fileio.read(reinterpret_cast<char *>(&t), idxNodeSize);
+            putchar('{');
+            cout << endl;
+            printidx(t);
+            puts("}");
+        }
+        void printidx(const idxNode &t) {
+            printf("idxNode(%d, %d):", t.keyNum, t.miniKey);
+            for (int i = 0; i < t.keyNum; i++)
+                cout << t.key[i] << ' ';
+            cout << endl;
+        }
+        void printdata(const dataNode &t) {
+            printf("dataNode(%d, %d):", t.keyNum, t.key[0]);
+            for (int i = 0; i < t.keyNum; i++)
+                printf("(%d, %d) ", t.key[i], t.data[i]);
+            cout << endl;
+        }
 };
 
 
