@@ -29,7 +29,9 @@ int main() {
             if(cmd_list[0] == CMDs[i]) {
                 debug << "i = " << i << cmd_list[0] << endl;
                 try {
+                    debug << "C++ in try" << endl;
                     string tmp = (ticket.*FUNCs[i])(cmd_list, siz);
+                    debug << "got tmp" << endl;
                     debug << "in C++ out = " << tmp << "\n$Final" << endl;
                     cout << tmp << "\n$Final" << endl; // magic code
                     if(tmp == "bye") exit(0);

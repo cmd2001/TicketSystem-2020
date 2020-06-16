@@ -20,17 +20,17 @@ class database{
 private:
     string Filename;
     static const int maxKeyNum=16;
-    static const int miniKeyNum=maxKeyNum/2;
+    static const int miniKeyNum=4;
     static const int MaxSize=maxKeyNum+2;
-    fstream Fileio;
+    std::fstream Fileio;
 
 private:
     /*key number is 0-base
      * */
     struct idxNode{
-        int offset[MaxSize],keyNum;
-        bool isLeaf;
         Key key[MaxSize],miniKey;
+        int isLeaf;
+        int offset[MaxSize],keyNum;
 
         idxNode(){
             isLeaf=false;
@@ -38,13 +38,14 @@ private:
         }
     };
     struct dataNode{
-        int offset,nextoffset,keyNum;
         Key key[MaxSize];
         Value data[MaxSize];
+        int offset,nextoffset,keyNum;
         dataNode(){
             keyNum=0;
             nextoffset=-1;
         }
+        dataNode(const dataNode &o) = default;
     };
 
     const int idxNodeSize=sizeof(idxNode);
@@ -290,7 +291,7 @@ public:
 
             Fileio.seekp(t->offset[i], ios::beg);
             Fileio.write(reinterpret_cast<char *>(p), dataNodeSize);
-            //Fileio.flush();
+            Fileio.flush();
             delete p;
         }else{
             Fileio.seekg(t->offset[i], ios::beg);
@@ -303,7 +304,7 @@ public:
 
             Fileio.seekp(t->offset[i], ios::beg);
             Fileio.write(reinterpret_cast<char *>(p), idxNodeSize);
-
+            Fileio.flush();
             delete p;
         }
         if(newNode== nullptr) return nullptr;
@@ -461,7 +462,7 @@ public:
 
         if (!t->isLeaf) {
             Fileio.seekg(t->offset[i], ios::beg);
-            idxNode *p = new idxNode;
+            auto *p = new idxNode;
             Fileio.read(reinterpret_cast<char *>(p), idxNodeSize);
             newNode = Eraseidx(k, p);
 
@@ -470,13 +471,13 @@ public:
 
             Fileio.seekp(t->offset[i], ios::beg);
             Fileio.write(reinterpret_cast<char *>(p), idxNodeSize);
-            Fileio.flush();
+            //Fileio.flush();
 
-            if(newNode== nullptr) delete p;
+            delete p;
 
         } else {
             Fileio.seekg(t->offset[i], ios::beg);
-            dataNode *p = new dataNode;
+            auto *p = new dataNode;
             Fileio.read(reinterpret_cast<char *>(p), dataNodeSize);
             newNode = Erasedata(k, p);
 
@@ -485,23 +486,23 @@ public:
 
             Fileio.seekp(t->offset[i], ios::beg);
             Fileio.write(reinterpret_cast<char *>(p), dataNodeSize);
-            Fileio.flush();
+            //Fileio.flush();
 
-            if(newNode== nullptr) delete p;
+            delete p;
 
         }
         if (newNode == nullptr)
             return nullptr;
         else {
-            if (t->isLeaf == 0)	return eraseBlockidx((idxNode *)newNode, t);
-            else return eraseBlockdata((dataNode *)newNode, t);
+            if (t->isLeaf == 0)	return eraseBlockidx((idxNode*)newNode, t);
+            else return eraseBlockdata((dataNode*)newNode, t);
         }
     }
     /*erase in leaf
      * */
     dataNode* Erasedata(const Key&k, dataNode*t){
         int i;
-        bool flag = false;
+        bool flag = 0;
         for (i = 0; i < t->keyNum; ++i) {
             if (isequal(t->key[i],k)) {
                 flag = 1;
@@ -523,7 +524,10 @@ public:
 
         if (t->keyNum >= miniKeyNum)
             return nullptr;
-        else return t;
+        else {
+            auto newnode = new dataNode(*t);
+            return newnode;
+        }
     }
     /*erase a idx block
      * */
@@ -536,6 +540,7 @@ public:
         for (i = t->keyNum; i > 0 && n->key[0] < t->key[i - 1]; --i);
 
         if (i != t->keyNum) {
+            // cout<<"Blockidx case1"<<endl;
             idxNode *next = new idxNode;
             Fileio.seekg(t->offset[i + 1], ios::beg);
             Fileio.read(reinterpret_cast<char *>(next), idxNodeSize);
@@ -566,14 +571,15 @@ public:
 
                 int j;
                 for (j = 0; j <= next->keyNum; ++j) {
-                    n->key[n->keyNum + j + 1] = next->key[j];
+                    if(j!=next->keyNum)
+                        n->key[n->keyNum + j + 1] = next->key[j];
                     n->offset[n->keyNum + j + 1] = next->offset[j];
                 }
-                n->offset[n->keyNum + j + 1] = next->offset[j];
+                //n->offset[n->keyNum + j + 1] = next->offset[j];
                 n->keyNum += next->keyNum + 1;
 
                 t->keyNum--;
-                for (int j = i; j < t->keyNum; j++) {
+                for (j = i; j < t->keyNum; j++) {
                     t->key[j] = t->key[j + 1];
                     t->offset[j + 1] = t->offset[j + 2];
                 }
@@ -587,6 +593,7 @@ public:
             delete next;
 
         }else if (i != 0){
+            // cout<<"Blockidx case2"<<endl;
             idxNode *pre = new idxNode;
             Fileio.seekg(t->offset[i - 1], ios::beg);
             Fileio.read(reinterpret_cast<char *>(pre), idxNodeSize);
@@ -618,18 +625,18 @@ public:
 
                 int j;
                 for (j = 0; j <= n->keyNum; j++) {
-                    pre->key[pre->keyNum + j + 1] = n->key[j];
+                    if(j!=n->keyNum)
+                        pre->key[pre->keyNum + j + 1] = n->key[j];
                     pre->offset[pre->keyNum + j + 1] = n->offset[j];
                 }
-                pre->offset[pre->keyNum + j + 1] = n->offset[j];
+                //pre->offset[pre->keyNum + j + 1] = n->offset[j];
                 pre->keyNum += n->keyNum + 1;
 
                 t->keyNum--;
-                for (int j = i - 1; j < t->keyNum; j++) {
+                for (j = i - 1; j < t->keyNum; j++) {
                     t->key[j] = t->key[j + 1];
                     t->offset[j + 1] = t->offset[j + 2];
                 }
-
                 Fileio.seekp(t->offset[i - 1], ios::beg);
                 Fileio.write(reinterpret_cast<char *>(pre), idxNodeSize);
                 Fileio.flush();
@@ -642,7 +649,10 @@ public:
 
         if (t->keyNum >= min)
             return nullptr;
-        else return t; //back and do again
+        else {
+            auto newnode = new idxNode(*t);
+            return newnode;
+        }
     }
     /*erase a data block
      * */
@@ -652,9 +662,10 @@ public:
         else min = miniKeyNum;
 
         int i;
-        for (i = t->keyNum; i > 0 && n->key[0] < t->key[i - 1]; --i);
+        for (i = t->keyNum; i > 0 && n->key[0] < t->key[i - 1]; --i){}
 
         if (i != t->keyNum) {
+            // cout<<"Blockdata case1"<<endl;
             dataNode *next = new dataNode;
             Fileio.seekg(t->offset[i + 1], ios::beg);
             Fileio.read(reinterpret_cast<char *>(next), dataNodeSize);
@@ -668,8 +679,10 @@ public:
                     next->key[j] = next->key[j + 1];
                     next->data[j] = next->data[j + 1];
                 }
+
                 t->key[i] = next->key[0];
-                t->key[i - 1] = n->key[0];
+                //t->key[i - 1] = n->key[0];
+                //cout<<t->isLeaf<<endl;
                 Fileio.seekp(t->offset[i], ios::beg);
                 Fileio.write(reinterpret_cast<char *>(n), dataNodeSize);
                 Fileio.seekp(t->offset[i + 1], ios::beg);
@@ -681,7 +694,9 @@ public:
                     n->key[n->keyNum + j] = next->key[j];
                     n->data[n->keyNum + j] = next->data[j];
                 }
+                //cout<<n->keyNum<<endl;
                 n->keyNum += next->keyNum;
+                //cout<<n->keyNum<<endl;
                 n->nextoffset = next->nextoffset;
 
                 t->keyNum--;
@@ -690,7 +705,7 @@ public:
                     t->key[j] = t->key[j + 1];
                     t->offset[j + 1] = t->offset[j + 2];
                 }
-                t->key[i - 1] = n->key[0];
+                //t->key[i - 1] = n->key[0];
 
                 Fileio.seekp(t->offset[i], ios::beg);
                 Fileio.write(reinterpret_cast<char *>(n), dataNodeSize);
@@ -700,6 +715,7 @@ public:
             delete next;
 
         }else if (i != 0) {
+            // cout<<"Blockdata case2"<<endl;
             dataNode *pre = new dataNode;
             Fileio.seekg(t->offset[i - 1], ios::beg);
             Fileio.read(reinterpret_cast<char *>(pre), dataNodeSize);
@@ -752,7 +768,10 @@ public:
 
         if (t->keyNum >= min)
             return nullptr;
-        else return t;  //back and do again
+        else {
+            auto newnode = new idxNode(*t);
+            return newnode;
+        }
     }
 
 
@@ -815,8 +834,8 @@ public:
             root = new idxNode;
             root->keyNum += 2;
             root->miniKey = t->miniKey;
-            root->key[0] = t->miniKey;
-            root->key[1] = q->miniKey;  //todo???
+           // root->key[0] = t->miniKey;
+            root->key[0] = q->miniKey;  //fix it
             root->offset[0] = _offset;
             root->offset[1] = _offset + idxNodeSize;
             Fileio.seekp(2 * sizeof(int) + dataNodeSize, ios::beg);
@@ -844,16 +863,18 @@ public:
         List<Value> newList;
         auto now=Lower_bound(k1);
         //加入valid的终止条件 免得陷入死循环 草 被坑惨了
-        while(!(k2 < now.key()) && now.valid()){
+        while((!k2<now.key())&&now.valid()){
             newList.push_back(now.value());
             //cout<<now.value()<<endl;
             now++;
         }
         return newList;
     }
+
     bool erase(const Key &k){
-        if(!find(k)) return false;
+        //Print();
         if(root->keyNum==-1) return false;
+        if(!find(k)) return false;
         idxNode* r=Eraseidx(k,root);
         if(r!= nullptr){
             if(r->keyNum!=0){
@@ -867,6 +888,79 @@ public:
         return true;
     }
 
+    /*
+     * void erase(const Key &_k) {
+        //if (root->keyNum != -1) {
+            idxNode *r =Eraseidx(_k, root);
+            if (r != nullptr) {
+                if (r->keyNum != 0) {
+                    Fileio.seekg(root->offset[0], std::ios::beg);
+                    Fileio.read(reinterpret_cast<char *>(root), idxNodeSize);
+                }
+                Fileio.seekp(2 * sizeof(int) + dataNodeSize, std::ios::beg);
+                Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
+                Fileio.flush();
+            }
+       // }
+    }
+     */
+
+
+    void Print() {
+            puts("-------------------------Print Tree----------------------------------");
+            Printidx(*root);
+            puts("--------------------------End Tree-----------------------------------");
+        }
+        void Printidx(const idxNode &t) {
+            putchar('{');
+            printidx(t);
+            if (!t.isLeaf) {
+                for (int i = 0; i <= t.keyNum; i++) {
+                    idxNode p;
+                    Fileio.seekg(t.offset[i]);
+                    Fileio.read(reinterpret_cast<char *>(&p), idxNodeSize);
+                    Printidx(p);
+                }
+            }
+            else {
+                for (int i = 0; i <= t.keyNum; i++) {
+                    dataNode p;
+                    Fileio.seekg(t.offset[i]);
+                    Fileio.read(reinterpret_cast<char *>(&p), dataNodeSize);
+                    printdata(p);
+                }
+            }
+            puts("}\n");
+        }
+        void putData(int offset) {
+            dataNode t;
+            Fileio.seekg(offset);
+            Fileio.read(reinterpret_cast<char *>(&t), dataNodeSize);
+            puts("[");
+            printdata(t);
+            puts("]");
+        }
+        void putidx(int offset) {
+            idxNode t;
+            Fileio.seekg(offset);
+            Fileio.read(reinterpret_cast<char *>(&t), idxNodeSize);
+            putchar('{');
+            cout << endl;
+            printidx(t);
+            puts("}");
+        }
+        void printidx(const idxNode &t) {
+            printf("idxNode(%d, %d):", t.keyNum, t.miniKey);
+            for (int i = 0; i < t.keyNum; i++)
+                cout << t.key[i] << ' ';
+            cout << endl;
+        }
+        void printdata(const dataNode &t) {
+            printf("dataNode(%d, %d):", t.keyNum, t.key[0]);
+            for (int i = 0; i < t.keyNum; i++)
+                printf("(%d, %d) ", t.key[i], t.data[i]);
+            cout << endl;
+        }
 };
 
 
