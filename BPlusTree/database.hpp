@@ -8,7 +8,7 @@
 #include <cmath>
 #include <string>
 #include <fstream>
-#include "../include/List.hpp"
+#include "List.hpp"
 
 template <typename Key>
 bool isequal(const Key&a,const Key &b){
@@ -20,7 +20,7 @@ class database{
 private:
     string Filename;
     static const int maxKeyNum=16;
-    static const int miniKeyNum=3;
+    static const int miniKeyNum=4;
     static const int MaxSize=maxKeyNum+2;
     std::fstream Fileio;
 
@@ -45,6 +45,7 @@ private:
             keyNum=0;
             nextoffset=-1;
         }
+        dataNode(const dataNode &o) = default;
     };
 
     const int idxNodeSize=sizeof(idxNode);
@@ -523,7 +524,10 @@ public:
 
         if (t->keyNum >= miniKeyNum)
             return nullptr;
-        else return t;
+        else {
+            auto newnode = new dataNode(*t);
+            return newnode;
+        }
     }
     /*erase a idx block
      * */
@@ -536,6 +540,7 @@ public:
         for (i = t->keyNum; i > 0 && n->key[0] < t->key[i - 1]; --i);
 
         if (i != t->keyNum) {
+            // cout<<"Blockidx case1"<<endl;
             idxNode *next = new idxNode;
             Fileio.seekg(t->offset[i + 1], ios::beg);
             Fileio.read(reinterpret_cast<char *>(next), idxNodeSize);
@@ -566,10 +571,11 @@ public:
 
                 int j;
                 for (j = 0; j <= next->keyNum; ++j) {
-                    n->key[n->keyNum + j + 1] = next->key[j];
+                    if(j!=next->keyNum)
+                        n->key[n->keyNum + j + 1] = next->key[j];
                     n->offset[n->keyNum + j + 1] = next->offset[j];
                 }
-                n->offset[n->keyNum + j + 1] = next->offset[j];
+                //n->offset[n->keyNum + j + 1] = next->offset[j];
                 n->keyNum += next->keyNum + 1;
 
                 t->keyNum--;
@@ -587,6 +593,7 @@ public:
             delete next;
 
         }else if (i != 0){
+            // cout<<"Blockidx case2"<<endl;
             idxNode *pre = new idxNode;
             Fileio.seekg(t->offset[i - 1], ios::beg);
             Fileio.read(reinterpret_cast<char *>(pre), idxNodeSize);
@@ -618,10 +625,11 @@ public:
 
                 int j;
                 for (j = 0; j <= n->keyNum; j++) {
-                    pre->key[pre->keyNum + j + 1] = n->key[j];
+                    if(j!=n->keyNum)
+                        pre->key[pre->keyNum + j + 1] = n->key[j];
                     pre->offset[pre->keyNum + j + 1] = n->offset[j];
                 }
-                pre->offset[pre->keyNum + j + 1] = n->offset[j];
+                //pre->offset[pre->keyNum + j + 1] = n->offset[j];
                 pre->keyNum += n->keyNum + 1;
 
                 t->keyNum--;
@@ -641,7 +649,10 @@ public:
 
         if (t->keyNum >= min)
             return nullptr;
-        else return t; //back and do again
+        else {
+            auto newnode = new idxNode(*t);
+            return newnode;
+        }
     }
     /*erase a data block
      * */
@@ -654,6 +665,7 @@ public:
         for (i = t->keyNum; i > 0 && n->key[0] < t->key[i - 1]; --i){}
 
         if (i != t->keyNum) {
+            // cout<<"Blockdata case1"<<endl;
             dataNode *next = new dataNode;
             Fileio.seekg(t->offset[i + 1], ios::beg);
             Fileio.read(reinterpret_cast<char *>(next), dataNodeSize);
@@ -667,9 +679,10 @@ public:
                     next->key[j] = next->key[j + 1];
                     next->data[j] = next->data[j + 1];
                 }
+
                 t->key[i] = next->key[0];
-                t->key[i - 1] = n->key[0];
-                cout<<t->isLeaf<<endl;
+                //t->key[i - 1] = n->key[0];
+                //cout<<t->isLeaf<<endl;
                 Fileio.seekp(t->offset[i], ios::beg);
                 Fileio.write(reinterpret_cast<char *>(n), dataNodeSize);
                 Fileio.seekp(t->offset[i + 1], ios::beg);
@@ -681,9 +694,9 @@ public:
                     n->key[n->keyNum + j] = next->key[j];
                     n->data[n->keyNum + j] = next->data[j];
                 }
-                cout<<n->keyNum<<endl;
+                //cout<<n->keyNum<<endl;
                 n->keyNum += next->keyNum;
-                cout<<n->keyNum<<endl;
+                //cout<<n->keyNum<<endl;
                 n->nextoffset = next->nextoffset;
 
                 t->keyNum--;
@@ -692,7 +705,7 @@ public:
                     t->key[j] = t->key[j + 1];
                     t->offset[j + 1] = t->offset[j + 2];
                 }
-                t->key[i - 1] = n->key[0];
+                //t->key[i - 1] = n->key[0];
 
                 Fileio.seekp(t->offset[i], ios::beg);
                 Fileio.write(reinterpret_cast<char *>(n), dataNodeSize);
@@ -702,6 +715,7 @@ public:
             delete next;
 
         }else if (i != 0) {
+            // cout<<"Blockdata case2"<<endl;
             dataNode *pre = new dataNode;
             Fileio.seekg(t->offset[i - 1], ios::beg);
             Fileio.read(reinterpret_cast<char *>(pre), dataNodeSize);
@@ -754,7 +768,10 @@ public:
 
         if (t->keyNum >= min)
             return nullptr;
-        else return t;  //back and do again
+        else {
+            auto newnode = new idxNode(*t);
+            return newnode;
+        }
     }
 
 
