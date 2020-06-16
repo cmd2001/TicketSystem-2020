@@ -7,7 +7,8 @@
 #include <cstring>
 #include <cmath>
 #include <string>
-#include "../include/List.h"
+#include <fstream>
+#include "../include/List.hpp"
 
 template <typename Key>
 bool isequal(const Key&a,const Key &b){
@@ -113,10 +114,10 @@ public:
     }
 
 public:
-    bool empty(){
+    bool empty() const {
         return root->keyNum==-1;
     }
-    size_t size(){
+    size_t size() const {
         return curSize;
     }
     void clear(){
@@ -839,11 +840,11 @@ public:
             insert(k,data);
         return true;
     }
-    List<Value> range(Key k1,Key k2){
+    List<Value> range(const Key &k1, const Key &k2){
         List<Value> newList;
         auto now=Lower_bound(k1);
         //加入valid的终止条件 免得陷入死循环 草 被坑惨了
-        while((now.key()<k2||now.key()==k2)&&now.valid()){
+        while(!(k2 < now.key()) && now.valid()){
             newList.push_back(now.value());
             //cout<<now.value()<<endl;
             now++;
