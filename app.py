@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, redirect, make_response
-from ticket import Ticket, Constant, cookiePool
+from ticket import Ticket, Constant, cookiePool, initChecker
 
 app = Flask(__name__)
 ticket = Ticket('./backend')
+ini = initChecker('inited.txt')
 
 userPool = cookiePool()
 
@@ -10,8 +11,13 @@ def checkCookie():
     userID = request.cookies.get('id')
     return userPool.check(userID)
 
+def preCheck():
+    return ini.check() and checkCookie()
+
 @app.route('/login', methods=("GET", "POST"))
 def login():
+    if not ini.check():
+        return redirect('/')
     if checkCookie():
         return redirect('/')
 
@@ -29,10 +35,9 @@ def login():
 
 @app.route('/logout')
 def logout():
-    userID = request.cookies.get('id')
-    if not checkCookie():
+    if not preCheck():
         return redirect('/')
-
+    userID = request.cookies.get('id')
     name = userPool.query(userID)
     ticket.logout(name)
     userPool.erase(userID)
@@ -43,10 +48,23 @@ def getUsername():
     userID = request.cookies.get('id')
     return userPool.query(userID)
 
-# todo: check whether system has initialized
+@app.route('/init', methods=("GET", "POST"))
+def init():
+    if request.method == "GET":
+        return render_template('form.html', flag = True, form = Constant.init_form, form_path = '/init', title = 'System Initialization')
+    form = request.form.to_dict()
+    ret = ticket.add_user('-1', form['username'], form['password'], form['name'], form['mailAddr'], '10')
+    if ret:
+        ini.fil()
+    else:
+        return render_template('form.html', message = 'Failed', flag = True, form = Constant.init_form, form_path = '/init', title = 'System Initialization')
+    return redirect('/')
+
 
 @app.route('/')
 def root():
+    if not ini.check():
+        return redirect('/init')
     userID = request.cookies.get('id')
     if not checkCookie():
         return render_template('root.html', flag = 1)
@@ -56,6 +74,8 @@ def root():
 
 @app.route('/add_user', methods=("GET", "POST"))
 def add_user():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.add_user_form, form_path = '/add_user', title = 'Add User')
     form = request.form.to_dict()
@@ -67,6 +87,8 @@ def add_user():
 
 @app.route('/query_profile', methods=("GET", "POST"))
 def query_profile():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.query_profile_form, form_path = '/query_profile', title = 'Query Profile')
     form = request.form.to_dict()
@@ -77,6 +99,8 @@ def query_profile():
 
 @app.route('/modify_profile', methods=("GET", "POST"))
 def modify_profile():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.modify_profile_form, form_path = '/modify_profile', title = 'Modify Profile')
     form = request.form.to_dict()
@@ -88,6 +112,8 @@ def modify_profile():
 
 @app.route('/add_train', methods=("GET", "POST"))
 def add_train():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.add_train_form, form_path = '/add_train', title = 'Add Train')
     form = request.form.to_dict()
@@ -100,6 +126,8 @@ def add_train():
 
 @app.route('/release_train', methods=("GET", "POST"))
 def release_train():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.release_train_form, form_path = '/release_train', title = 'Release Train')
     form = request.form.to_dict()
@@ -111,6 +139,8 @@ def release_train():
 
 @app.route('/query_train', methods=("GET", "POST"))
 def query_train():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.query_train_form, form_path = '/query_train', title = 'Query Train')
     form = request.form.to_dict()
@@ -121,6 +151,8 @@ def query_train():
 
 @app.route('/delete_train', methods=("GET", "POST"))
 def delete_train():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.delete_train_form, form_path = '/delete_train', title = 'Delete Train')
     form = request.form.to_dict()
@@ -132,6 +164,8 @@ def delete_train():
 
 @app.route('/query_ticket', methods=("GET", "POST"))
 def query_ticket():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.query_ticket_form, form_path = '/query_ticket', title = 'Query Ticket')
     form = request.form.to_dict()
@@ -142,6 +176,8 @@ def query_ticket():
 
 @app.route('/query_transfer', methods=("GET", "POST"))
 def query_transfer():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.query_transfer_form, form_path = '/query_transfer', title = 'Query Transfer')
     form = request.form.to_dict()
@@ -153,6 +189,8 @@ def query_transfer():
 
 @app.route('/buy_ticket', methods=("GET", "POST"))
 def buy_ticket():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.buy_ticket_form, form_path = '/buy_ticket', title = 'Buy Ticket')
     form = request.form.to_dict()
@@ -166,12 +204,16 @@ def buy_ticket():
 
 @app.route('/query_order')
 def query_order():
+    if not preCheck():
+        return redirect('/')
     ret = ticket.query_order(getUsername()) # it can never be -1
     return render_template('table.html', username = getUsername(), title = 'Order', ret = ret, ret_len = len(ret), table_head = Constant.query_order_table_head, col_list = Constant.query_order_list)
 
 
 @app.route('/refund_ticket', methods=("GET", "POST"))
 def refund_ticket():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), form = Constant.refund_ticket_form, form_path = '/refund_ticket', title = 'Refund Ticket')
     form = request.form.to_dict()
@@ -183,18 +225,23 @@ def refund_ticket():
 
 @app.route('/clean', methods=("GET", "POST"))
 def clean():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), warning = 'Are You Sure to Clear All Data?', form = Constant.clean_form, form_path = '/clean', title = 'Clear Data')
     form = request.form.to_dict()
     if form['username'] == getUsername():
         ticket.clean()
         userPool.clean()
+        ini.reset()
         return redirect('/')
     else:
         return render_template('form.html', username = getUsername(), message = 'Failed!', warning = 'Are You Sure to Clear All Data?', form = Constant.clean_form, form_path = '/clean', title = 'Clear Data')
 
 @app.route('/shutdown', methods=("GET", "POST"))
 def shutdown():
+    if not preCheck():
+        return redirect('/')
     if request.method == "GET":
         return render_template('form.html', username = getUsername(), warning = 'Are You Sure to Shutdown the System?', form = Constant.shutdown_form, form_path = '/shutdown', title = 'Shutdown System')
     form = request.form.to_dict()

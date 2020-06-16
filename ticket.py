@@ -21,6 +21,8 @@ class Ticket:
         while 1:
             x = self.fout.readline().decode('UTF-8')
             print('x = ', x)
+            if x == ' ' or x == '':
+                break
             if x == '$Final\n' or x == '$Failed\n': # ret contains $Final, '\n' matters!
                 ret += x[0:-1]
                 break
@@ -268,6 +270,7 @@ class Constant:
     login_form = [('Username', 'username', 1), ('Password', 'password', 1)]
     clean_form = [('Enter Your Username Here to Authenticate', 'username', 1)]
     shutdown_form = [('Enter Your Username Here to Authenticate', 'username', 1)]
+    init_form = [('Username', 'username', 1), ('Password', 'password', 1), ('Name', 'name', 1), ('Mail Address', 'mailAddr', 1)]
 
     query_train_list = (0, 1, 2, 4, 5, 6, 7)
     query_train_table_head = ('Station', 'Arrival Date', 'Arrival Time', 'Departure Date', 'Departure Time', 'Cumulative Price', 'Remaining Seat')
@@ -302,4 +305,31 @@ class cookiePool:
     def query(self, id):
         return self.pool[id]
 
+class initChecker():
+    def __init__(self, arg):
+        self.arg = arg
+
+        try:
+            file = open(arg, 'r')
+            file.close()
+        except IOError:
+            file = open(arg, 'w')
+            file.write('0')
+
+        file = open(arg, 'r')
+        self.sta = bool(int(file.read()))
+
+    def check(self):
+        return self.sta
+
+    def fil(self):
+        file = open(self.arg, 'w')
+        file.write('1')
+        file.close()
+        self.sta = 1
+
+    def reset(self):
+        file = open(self.arg, 'w')
+        file.write('0')
+        file.close()
 

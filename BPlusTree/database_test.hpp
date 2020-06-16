@@ -15,7 +15,7 @@ inline bool Isequal(const Key &a,const Key &b){
 }
 
 template <typename Key,typename Value>
-class database_test{
+class database{
 private:
     string Filename;
 public:
@@ -57,7 +57,7 @@ public:
         in.close(),out.close();
     }
 
-    bool erase(Key K,Value V){
+    bool erase(const Key &K){
         ifstream in(Filename,ios::binary|ios::in);
         if(!in){cerr<<"erase F open error"<<endl;}
 
@@ -68,7 +68,7 @@ public:
         bool flag=false;
         in.read(reinterpret_cast<char*>(&P),sizeof(P));
         while(!in.eof()){
-            if(Isequal(K,P.first)&&V==P.second){
+            if(Isequal(K,P.first)){
                 flag=true;
                 in.read(reinterpret_cast<char*>(&P),sizeof(P));
                 continue;
@@ -176,7 +176,7 @@ public:
         return in.tellg() == 0;
     }
 public:
-    database_test(const string &F): Filename(F) {
+    database(const string &F): Filename(F) {
         ofstream out1;
         out1.open("tmp", ios::trunc | ios::binary); //create tmp and clear
         if (!out1) { cerr << "tmp create error" << endl; }
