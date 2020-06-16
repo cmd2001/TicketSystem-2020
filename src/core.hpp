@@ -248,7 +248,7 @@ public:
     class cmp_cost {
     public:
         bool operator()(const type_train_tnc &a, const type_train_tnc &b) {
-            return a.cost == b.cost? a.trainID < b.trainID : a.time < b.time;
+            return a.cost == b.cost? a.trainID < b.trainID : a.cost < b.cost;
         }
     };
 
@@ -1122,10 +1122,12 @@ public:
         if(!cur_u.first) return "-1";
         this_u = Users.query(username);
         if(!this_u.first) throw unknown_wrong();
-        List<type_order> orders = Database_orders.range(type_userName_orderID(this_u.second.userName, this_u.second.orderNum), type_userName_orderID(this_u.second.userName, 1));
         ans = std::to_string(this_u.second.orderNum);
-        for(auto &order : orders) {
-            ans += (string)"\n" + order.get();
+        if(this_u.second.orderNum) {
+            List<type_order> orders = Database_orders.range(type_userName_orderID(this_u.second.userName, this_u.second.orderNum), type_userName_orderID(this_u.second.userName, 1));
+            for(auto &order : orders) {
+                ans += (string)"\n" + order.get();
+            }
         }
         return ans;
     }
@@ -1171,6 +1173,7 @@ public:
         type_train_release t_release = get_release(o_refund.runtimeID);
         t_release.refund(o_refund.startNum, o_refund.endNum, o_refund.num); // 退票，座位复原
 
+//        cout << o_refund.runtimeID << " " << totalID_runtime << endl;
         auto queue = Database_queue.range(type_queue_key(o_refund.runtimeID, 1), type_queue_key(o_refund.runtimeID, totalID_runtime));
         for(auto &key: queue) {
             auto o_return = Database_orders.query(key);
