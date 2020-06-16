@@ -66,20 +66,21 @@ bool test3() { // erase
     database<int, int> D("file_test");
     map<int, int> D0;
     D.clear();
-    for(int i = 0; i < 10000; ++i) {
-        int a  = rand(), b = rand();
+    for(int i = 0; i < 100000; ++i) {
+        int a  = rand() % 32768, b = rand() % 32768;
         if(!D0.count(a)) {
             D.insert(a, b);
             D0.insert(map<int, int>::value_type(a, b));
         }
     }
-    for(int i = 0; i < 10000; ++i) {
-        int a = rand();
+    for(int i = 0; i < 100000; ++i) {
+        int a = rand() % 32768;
         if(D0.count(a)) {
             D0.erase(a);
             D.erase(a);
         }
     }
+    cout << D0.size() << endl;
     for(auto &it: D0) {
         auto ret = D.query(it.first);
         if(!ret.first) { cout << "No match" << endl; goto WRONG; }
@@ -167,7 +168,7 @@ bool test6() { // multiple
     database<int, int> D("file_test");
     map<int, int> D0;
     D.clear();
-    for(int i = 0; i < 10000; ++i) {
+    for(int i = 0; i < 100000; ++i) {
         int a  = rand(), b = rand();
         if(!D0.count(a)) {
             D.insert(a, b);
@@ -209,6 +210,18 @@ bool test6() { // multiple
         if(!ret.first) { cout << "No match" << endl; goto WRONG; }
         if(ret.second != it.second) goto WRONG;
     }
+    // for(int i = 0; i < 100000; ++i) {
+    //     int a = rand();
+    //     if(D0.count(a)) {
+    //         D0.erase(a);
+    //         D.erase(a);
+    //     }
+    // }
+    for(auto &it: D0) {
+        auto ret = D.query(it.first);
+        if(!ret.first) { cout << "No match" << endl; goto WRONG; }
+        if(ret.second != it.second) goto WRONG;
+    }
     return 1;
 
     WRONG: cout << "wrong!" << endl;
@@ -217,11 +230,12 @@ bool test6() { // multiple
 
 int main() {
     srand(time(NULL));
-    cout << (test1()? "test1 passed." : "test1 failed") << endl;
-    cout << (test2()? "test2 passed." : "test2 failed") << endl;
+    // cout << (test1()? "test1 passed." : "test1 failed") << endl;
+    // cout << (test2()? "test2 passed." : "test2 failed") << endl;
+    // for(int i = 0; i <= 100; ++i)
     cout << (test3()? "test3 passed." : "test3 failed") << endl;
-    cout << (test4()? "test4 passed." : "test4 failed") << endl;
-    cout << (test5()? "test5 passed." : "test5 failed") << endl;
-    cout << (test6()? "test6 passed." : "test6 failed") << endl;
+    // cout << (test4()? "test4 passed." : "test4 failed") << endl;
+    // cout << (test5()? "test5 passed." : "test5 failed") << endl;
+    // cout << (test6()? "test6 passed." : "test6 failed") << endl;
 }
 
