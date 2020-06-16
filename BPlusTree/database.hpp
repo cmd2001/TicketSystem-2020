@@ -584,7 +584,7 @@ public:
                     t->offset[j + 1] = t->offset[j + 2];
                 }
                 if(i == 0) t->miniKey = n->miniKey;
-                else t->key[i - 1] = n->miniKey;
+                else t->key[i - 1] = n->miniKey;   //when i==0 it is a quite small problem
 
                 Fileio.seekp(t->offset[i], std::ios::beg);
                 Fileio.write(reinterpret_cast<char *>(n), idxNodeSize);
@@ -862,6 +862,7 @@ public:
     }
     List<Value> range(const Key &k1, const Key &k2){
         List<Value> newList;
+        if(size()==0) return newList; //when file is empty,specially judge
         auto now=Lower_bound(k1);
         //加入valid的终止条件 免得陷入死循环 草 被坑惨了
         while(!(k2<now.key())&&now.valid()){
@@ -885,7 +886,7 @@ public:
             Fileio.seekp(2 * sizeof(int) + dataNodeSize, ios::beg);
             Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
             Fileio.flush();
-            delete r;
+            delete r;   //it is necessary
         }
         return true;
     }
