@@ -583,6 +583,7 @@ public:
                     t->key[j] = t->key[j + 1];
                     t->offset[j + 1] = t->offset[j + 2];
                 }
+                if(i==0)
                 t->key[i - 1] = n->miniKey;
 
                 Fileio.seekp(t->offset[i], std::ios::beg);
