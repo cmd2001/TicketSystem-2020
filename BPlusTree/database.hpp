@@ -583,7 +583,8 @@ public:
                     t->key[j] = t->key[j + 1];
                     t->offset[j + 1] = t->offset[j + 2];
                 }
-                t->key[i - 1] = n->miniKey;
+                if(i == 0) t->miniKey = n->miniKey;
+                else t->key[i - 1] = n->miniKey;
 
                 Fileio.seekp(t->offset[i], std::ios::beg);
                 Fileio.write(reinterpret_cast<char *>(n), idxNodeSize);
@@ -863,7 +864,7 @@ public:
         List<Value> newList;
         auto now=Lower_bound(k1);
         //加入valid的终止条件 免得陷入死循环 草 被坑惨了
-        while((!k2<now.key())&&now.valid()){
+        while(!(k2<now.key())&&now.valid()){
             newList.push_back(now.value());
             //cout<<now.value()<<endl;
             now++;
@@ -884,6 +885,7 @@ public:
             Fileio.seekp(2 * sizeof(int) + dataNodeSize, ios::beg);
             Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
             Fileio.flush();
+            delete r;
         }
         return true;
     }
