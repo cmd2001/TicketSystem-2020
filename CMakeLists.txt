@@ -15,4 +15,4 @@ add_executable(code ${DIR_SRCS})
 
 add_executable(backend backend.cpp)
 
-add_executable(test BPlusTree/test.cpp)
+# add_executable(test BPlusTree/test.cpp)
