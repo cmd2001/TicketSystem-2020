@@ -56,6 +56,7 @@ private:
      * 本来我是想实现类似于迭代器的dataNode实现
      * 并且以leftHand作为begin
      * 然后发现没有什么用.......
+     * 可以在文件中忽略掉它
      * */
     idxNode *root;
     dataNode *leftHead;
@@ -584,7 +585,7 @@ public:
                     t->offset[j + 1] = t->offset[j + 2];
                 }
                 if(i == 0) t->miniKey = n->miniKey;
-                else t->key[i - 1] = n->miniKey;
+                else t->key[i - 1] = n->miniKey;   //when i==0 it is a quite small problem
 
                 Fileio.seekp(t->offset[i], std::ios::beg);
                 Fileio.write(reinterpret_cast<char *>(n), idxNodeSize);
@@ -775,9 +776,77 @@ public:
         }
     }
 
+private:
+    /*a series of print function
+     * run Print() and it will print the whole tree
+     * it is no use for user
+     * all for test
+     * */
+    void Print() {
+        puts("---------------------Print Tree----------------------------");
+        Printidx(*root);
+        puts("----------------------End Tree------------------------------");
+    }
+
+    void Printidx(const idxNode &t) {
+        putchar('{');
+        printidx(t);
+        if (!t.isLeaf) {
+            for (int i = 0; i <= t.keyNum; i++) {
+                idxNode p;
+                Fileio.seekg(t.offset[i]);
+                Fileio.read(reinterpret_cast<char *>(&p), idxNodeSize);
+                Printidx(p);
+            }
+        }
+        else {
+            for (int i = 0; i <= t.keyNum; i++) {
+                dataNode p;
+                Fileio.seekg(t.offset[i]);
+                Fileio.read(reinterpret_cast<char *>(&p), dataNodeSize);
+                printdata(p);
+            }
+        }
+        puts("}\n");
+    }
+
+    void putData(int offset) {
+        dataNode t;
+        Fileio.seekg(offset);
+        Fileio.read(reinterpret_cast<char *>(&t), dataNodeSize);
+        puts("[");
+        printdata(t);
+        puts("]");
+    }
+
+    void putidx(int offset) {
+        idxNode t;
+        Fileio.seekg(offset);
+        Fileio.read(reinterpret_cast<char *>(&t), idxNodeSize);
+        putchar('{');
+        cout << endl;
+        printidx(t);
+        puts("}");
+    }
+
+    void printidx(const idxNode &t) {
+        printf("idxNode(%d, %d):", t.keyNum, t.miniKey);
+        for (int i = 0; i < t.keyNum; i++)
+            cout << t.key[i] << ' ';
+        cout << endl;
+    }
+
+    void printdata(const dataNode &t) {
+        printf("dataNode(%d, %d):", t.keyNum, t.key[0]);
+        for (int i = 0; i < t.keyNum; i++)
+            printf("(%d, %d) ", t.key[i], t.data[i]);
+        cout << endl;
+    }
 
 public:
-    /*search a key*/
+    /*search a key
+     *return an Iterator
+     * */
     Iterator search(const Key&k){
         if(empty()) return Iterator(this,dataNode(),-1);
         auto t=idxSearch(k,*root);
@@ -785,11 +854,14 @@ public:
         delete t;
         return res;
     }
+
     /*find a key
-     * return true/false*/
+     * return true/false
+     * */
     bool find(const Key &k){
         return search(k).valid();
     }
+
     /*search the first key >=k
      * fix the problem in Lower_bounddata
      * */
@@ -797,9 +869,11 @@ public:
         auto t=Lower_boundidx(k,*root);
         auto tmp=*t;
         delete t;
+
         //fix problem
         if(tmp.key()<k)
             tmp++;
+
         return tmp;
     }
 
@@ -810,32 +884,40 @@ public:
         else
             return make_pair(false,Value());
     }
+
     void insert(const Key &k, const Value & data){
-        if(root->keyNum==-1){  //add root
+        //add root
+        if(root->keyNum==-1){
             root->isLeaf = true;
             root->keyNum++;
             root->miniKey = k;
+
             leftHead->keyNum = 1;
             leftHead->key[0] = k;
             leftHead->data[0] = data;
             leftHead->offset = 2 * sizeof(int);
             root->offset[0] = 2 * sizeof(int);
+
             Fileio.seekp(2 * sizeof(int), ios::beg);
             Fileio.write(reinterpret_cast<char *>(leftHead), dataNodeSize);
             Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
+
             curSize++;
+
             Fileio.seekp(0, ios::beg);
             Fileio.write(reinterpret_cast<char *>(&curSize), sizeof(int));
             Fileio.flush();
             return;
         }
+
         idxNode *q=Insertidx(k,data,root);
-        if(q!= nullptr) {  //change new root
+
+        //change new root
+        if(q!= nullptr) {
             idxNode *t = root;
             root = new idxNode;
             root->keyNum += 2;
             root->miniKey = t->miniKey;
-           // root->key[0] = t->miniKey;
             root->key[0] = q->miniKey;  //fix it
             root->offset[0] = _offset;
             root->offset[1] = _offset + idxNodeSize;
@@ -853,18 +935,24 @@ public:
         }
         Fileio.flush();
     }
+
     bool modify(const Key &k,const Value &data){
+        //use function insert to realize it
+        //you can see it in Line 326
         if(!find(k))
             return false;
         else
             insert(k,data);
         return true;
     }
+
     List<Value> range(const Key &k1, const Key &k2){
         List<Value> newList;
-        if(curSize == 0) return newList;
+        if(size()==0) //when file is empty,specially judge
+            return newList;
         auto now=Lower_bound(k1);
-        //加入valid的终止条件 免得陷入死循环 草 被坑惨了
+        //加入now.valid的终止条件
+        //以防迭代器越界 陷入死循环 草 被坑惨了
         while(!(k2<now.key())&&now.valid()){
             newList.push_back(now.value());
             //cout<<now.value()<<endl;
@@ -873,97 +961,50 @@ public:
         return newList;
     }
 
+    List<pair<Key,Value>> range2(const Key &k1, const Key &k2){
+        List<pair<Key,Value>> newList;
+
+        if(size()==0) //when file is empty,specially judge
+            return newList;
+
+        auto now=Lower_bound(k1);
+
+        while(!(k2<now.key())&&now.valid()){
+            newList.push_back(make_pair(now.key(),now.value()));
+            now++;
+        }
+
+        return newList;
+    }
+
     bool erase(const Key &k){
         //Print();
-        if(root->keyNum==-1) return false;
-        if(!find(k)) return false;
+        if(root->keyNum==-1) return false;   //there is nothing in the file
+        if(!find(k)) return false;  //no k in the file
+
         idxNode* r=Eraseidx(k,root);
+
         if(r!= nullptr){
             if(r->keyNum!=0){
+                //change root
                 Fileio.seekg(root->offset[0], ios::beg);
                 Fileio.read(reinterpret_cast<char *>(root), idxNodeSize);
             }
             Fileio.seekp(2 * sizeof(int) + dataNodeSize, ios::beg);
             Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
             Fileio.flush();
+
+            //delete r is necessary
+            //because r refers to a real space
             delete r;
         }
         return true;
     }
 
-    /*
-     * void erase(const Key &_k) {
-        //if (root->keyNum != -1) {
-            idxNode *r =Eraseidx(_k, root);
-            if (r != nullptr) {
-                if (r->keyNum != 0) {
-                    Fileio.seekg(root->offset[0], std::ios::beg);
-                    Fileio.read(reinterpret_cast<char *>(root), idxNodeSize);
-                }
-                Fileio.seekp(2 * sizeof(int) + dataNodeSize, std::ios::beg);
-                Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
-                Fileio.flush();
-            }
-       // }
+    void save(){
+        Fileio.flush();
     }
-     */
 
-
-    void Print() {
-            puts("-------------------------Print Tree----------------------------------");
-            Printidx(*root);
-            puts("--------------------------End Tree-----------------------------------");
-        }
-        void Printidx(const idxNode &t) {
-            putchar('{');
-            printidx(t);
-            if (!t.isLeaf) {
-                for (int i = 0; i <= t.keyNum; i++) {
-                    idxNode p;
-                    Fileio.seekg(t.offset[i]);
-                    Fileio.read(reinterpret_cast<char *>(&p), idxNodeSize);
-                    Printidx(p);
-                }
-            }
-            else {
-                for (int i = 0; i <= t.keyNum; i++) {
-                    dataNode p;
-                    Fileio.seekg(t.offset[i]);
-                    Fileio.read(reinterpret_cast<char *>(&p), dataNodeSize);
-                    printdata(p);
-                }
-            }
-            puts("}\n");
-        }
-        void putData(int offset) {
-            dataNode t;
-            Fileio.seekg(offset);
-            Fileio.read(reinterpret_cast<char *>(&t), dataNodeSize);
-            puts("[");
-            printdata(t);
-            puts("]");
-        }
-        void putidx(int offset) {
-            idxNode t;
-            Fileio.seekg(offset);
-            Fileio.read(reinterpret_cast<char *>(&t), idxNodeSize);
-            putchar('{');
-            cout << endl;
-            printidx(t);
-            puts("}");
-        }
-        void printidx(const idxNode &t) {
-            printf("idxNode(%d, %d):", t.keyNum, t.miniKey);
-            for (int i = 0; i < t.keyNum; i++)
-                cout << t.key[i] << ' ';
-            cout << endl;
-        }
-        void printdata(const dataNode &t) {
-            printf("dataNode(%d, %d):", t.keyNum, t.key[0]);
-            for (int i = 0; i < t.keyNum; i++)
-                printf("(%d, %d) ", t.key[i], t.data[i]);
-            cout << endl;
-        }
 };
 
 
