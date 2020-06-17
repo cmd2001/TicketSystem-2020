@@ -862,6 +862,7 @@ public:
     }
     List<Value> range(const Key &k1, const Key &k2){
         List<Value> newList;
+        if(curSize == 0) return newList;
         auto now=Lower_bound(k1);
         //加入valid的终止条件 免得陷入死循环 草 被坑惨了
         while(!(k2<now.key())&&now.valid()){
