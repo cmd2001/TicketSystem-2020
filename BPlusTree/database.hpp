@@ -20,7 +20,7 @@ class database{
 private:
     string Filename;
     static const int maxKeyNum=16;
-    static const int miniKeyNum=4;
+    static const int miniKeyNum=maxKeyNum/2;
     static const int MaxSize=maxKeyNum+2;
     std::fstream Fileio;
 
