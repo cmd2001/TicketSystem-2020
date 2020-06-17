@@ -551,15 +551,17 @@ namespace __Amagi {
          * modify + read = impossible, modify + insert = impossible, modify + modify = modify, modify + delete = delete
          * delete + read = impossible, delete + insert = modify, delete + modify = impossible, delete + delete = impossible
          */
-        int type_table[4][4] = {{-1, -1, -1, -1}, {-1, -1, 1, 4}, {-1, -1, 2, 3}, {-1, 2, -1, -1}};
+        int type_table[4][4] = {{0, 1, 2, 3}, {-1, -1, 1, 4}, {-1, -1, 2, 3}, {-1, 2, -1, -1}};
         mapA::map<type_key, cache_Node> cache;
         mapA::map<size_t, type_key> que;
         size_t uid, cur_size;
         void popQue() {
             auto x = que.begin()->second;
             que.erase(que.begin());
+            assert(cache.find(x) != cache.end());
             auto y = cache[x];
             cache.erase(cache.find(x));
+            assert(que.size() == cache.size());
             if(y.type == 0) return; // nothing to do.
             else if(y.type == 1) core.insert(x, y.value);
             else if(y.type == 2) core.modify(x, y.value);
@@ -568,21 +570,18 @@ namespace __Amagi {
         void pushQue(const type_key &key, const type_value &value, const int &type) {
             if(cache.find(key) != cache.end()) {
                 auto y = cache[key];
-                // assert(que.find(y.quePos) != que.end());
-                if(que.find(y.quePos) == que.end()) {
-                    for(auto x: que) debug << x.first << " "; debug << endl;
-                    debug << y.quePos << endl;
-                    exit(0);
-                }
+                assert(que.find(y.quePos) != que.end());
                 que.erase(que.find(y.quePos));
                 int new_type = type_table[y.type][type];
                 assert(new_type != -1);
-                if(new_type == 4) return;
+                if(new_type == 4) {
+                    cache.erase(cache.find(key));
+                    return;
+                }
                 y = cache_Node(new_type, ++uid, value);
                 cache[que[uid] = key] = y;
             } else {
                 if(cache.size() == max_Cache_Size) popQue();
-                // debug << que.size() << "    " << cache.size() << endl;
                 assert(que.size() == cache.size());
                 que[++uid] = key;
                 cache[key] = cache_Node(type, uid, value);
@@ -609,7 +608,8 @@ namespace __Amagi {
             return ret;
         }
     public:
-        database_cached(const string &s): core(s), uid(0) {cur_size = core.size();}
+        string __name;
+        database_cached(const string &s): core(s), uid(0), __name(s) {cur_size = core.size();}
         void insert(const type_key &key, const type_value &value) {
             if(!max_Cache_Size) return core.insert(key, value); // defeat cache
             ++cur_size;
