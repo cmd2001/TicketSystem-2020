@@ -533,7 +533,7 @@ namespace mapA { // from https://github.com/battlin6/My_STLite/blob/master/mapA/
 }
 
 namespace __Amagi {
-    constexpr size_t max_Cache_Size = 10;
+    constexpr size_t max_Cache_Size = 50;
 
     template <typename type_key,typename type_value>
     class database_cached {
@@ -630,8 +630,8 @@ namespace __Amagi {
             if(!max_Cache_Size) return core.query(key);
             if(cache.find(key) != cache.end()) { // found in cache
                 auto y = cache[key];
-                if(y.type == 3) return make_pair(0, type_key()); // erased
-                return make_pair(1, y.value);
+                if(y.type == 3) return make_pair(false, type_value()); // erased
+                return make_pair(true, y.value);
             } else { // not found in cache
                 auto ret = core.query(key);
                 if(ret.first) pushQue(key, ret.second, 0);
@@ -666,10 +666,10 @@ namespace __Amagi {
         }
         ~database_cached() { // write back all cached data
             for(auto x: cache) {
-                if(x.second.value == 0) continue;
-                else if(x.second.value == 1) core.insert(x.first, x.second.value);
-                else if(x.second.value == 2) core.modify(x.first, x.second.value);
-                else if(x.second.value == 3) core.erase(x.first);
+                if(x.second.type == 0) continue;
+                else if(x.second.type == 1) core.insert(x.first, x.second.value);
+                else if(x.second.type == 2) core.modify(x.first, x.second.value);
+                else if(x.second.type == 3) core.erase(x.first);
             }
         }
     };

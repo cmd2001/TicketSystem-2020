@@ -1,7 +1,8 @@
 #ifndef TICKET_CLASS_HPP
 #define TICKET_CLASS_HPP
 
-#include "../BPlusTree/database.hpp"
+#include "../BPlusTree/database_cached.hpp"
+using __Amagi::database_cached;
 #include "exceptions.hpp"
 #include "tools.hpp"
 #include <cstdio>
@@ -337,13 +338,13 @@ public:
         }
     };
 
-    database<type_userName, type_user> Users;
-    database<type_userName, int> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
-    database<type_trainID, type_train> Trains_base;
-    database<type_trainID, type_train_release> Trains_released;
-    database<type_stationName_startTime, std::pair<type_trainID, int>> Database_stations; // 按车站和出发时间记录车次和该站编号
-    database<type_userName_orderID, type_order> Database_orders;
-    database<type_queue_key, type_userName_orderID> Database_queue; // 候补队列，value为order_key和totalID
+    database_cached<type_userName, type_user> Users;
+    database_cached<type_userName, int> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
+    database_cached<type_trainID, type_train> Trains_base;
+    database_cached<type_trainID, type_train_release> Trains_released;
+    database_cached<type_stationName_startTime, std::pair<type_trainID, int>> Database_stations; // 按车站和出发时间记录车次和该站编号
+    database_cached<type_userName_orderID, type_order> Database_orders;
+    database_cached<type_queue_key, type_userName_orderID> Database_queue; // 候补队列，value为order_key和totalID
     int totalID_runtime; // 运行时的总orderID，在退出时写入文件file_totalID
 
 private:
