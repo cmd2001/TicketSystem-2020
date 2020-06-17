@@ -647,7 +647,7 @@ namespace __Amagi {
                 if(cache.find(x.first) == cache.end()) ret.push_back(x);
                 else {
                     auto tp = cache[x.first];
-                    assert(tp.type == 0 || tp.type == 2) ;
+                    assert(tp.type != 1) ;
                     if(tp.type != 3) ret.push_back(make_pair(x.first, tp.value));
                 }
             }
