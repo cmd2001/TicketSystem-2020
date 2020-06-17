@@ -879,8 +879,9 @@ public:
 
 public:
     pair<bool,Value> query(const Key &k){
-        if(search(k).valid())
-            return make_pair(true,search(k).value());
+        auto x=search(k);
+        if(x.valid())
+            return make_pair(true,x.value());
         else
             return make_pair(false,Value());
     }
