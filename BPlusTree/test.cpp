@@ -9,14 +9,14 @@ bool test1() { // insert & query
     map<int, int> D0;
     D.clear();
     for(int i = 0; i < 10000; ++i) {
-        int a  = rand(), b = rand();
+        int a  = rand() % 32768, b = rand() % 32768;
         if(!D0.count(a)) {
             D.insert(a, b);
             D0.insert(map<int, int>::value_type(a, b));
         }
     }
     // for(int i = 0; i < 1000; ++i) {
-    //     int a  = rand(), b = rand();
+    //     int a  = rand() % 32768, b = rand() % 32768;
     //     if(!D0.count(a)) {
     //         D.insert(a, b);
     //         D0.insert(map<int, int>::value_type(a, b));
@@ -40,14 +40,14 @@ bool test2() { // modify
     map<int, int> D0;
     D.clear();
     for(int i = 0; i < 10000; ++i) {
-        int a  = rand(), b = rand();
+        int a  = rand() % 32768, b = rand() % 32768;
         if(!D0.count(a)) {
             D.insert(a, b);
             D0.insert(map<int, int>::value_type(a, b));
         }
     }
     for(auto &it: D0) {
-        int b = rand();
+        int b = rand() % 32768;
         D0[it.first] = b;
         D.modify(it.first, b);
     }
@@ -80,7 +80,6 @@ bool test3() { // erase
             D.erase(a);
         }
     }
-    cout << D0.size() << endl;
     for(auto &it: D0) {
         auto ret = D.query(it.first);
         if(!ret.first) { cout << "No match" << endl; goto WRONG; }
@@ -97,7 +96,7 @@ bool test4() { // range
     map<int, int> D0;
     D.clear();
     for(int i = 0; i < 10000; ++i) {
-        int a  = rand(), b = rand();
+        int a  = rand() % 32768, b = rand() % 32768;
         if(!D0.count(a)) {
             D.insert(a, b);
             D0.insert(map<int, int>::value_type(a, b));
@@ -130,7 +129,7 @@ bool test5() { // clear
     map<int, int> D0;
     D.clear();
     for(int i = 0; i < 10000; ++i) {
-        int a  = rand(), b = rand();
+        int a  = rand() % 32768, b = rand() % 32768;
         if(!D0.count(a)) {
             D.insert(a, b);
             D0.insert(map<int, int>::value_type(a, b));
@@ -138,14 +137,14 @@ bool test5() { // clear
     }
     D.clear(); D0.clear();
     for(int i = 0; i < 10000; ++i) {
-        int a  = rand(), b = rand();
+        int a  = rand() % 32768, b = rand() % 32768;
         if(!D0.count(a)) {
             D.insert(a, b);
             D0.insert(map<int, int>::value_type(a, b));
         }
     }
     for(int i = 0; i < 1000; ++i) {
-        int a  = rand(), b = rand();
+        int a  = rand() % 32768, b = rand() % 32768;
         if(!D0.count(a)) {
             D.insert(a, b);
             D0.insert(map<int, int>::value_type(a, b));
@@ -168,22 +167,22 @@ bool test6() { // multiple
     database<int, int> D("file_test");
     map<int, int> D0;
     D.clear();
-    for(int i = 0; i < 100000; ++i) {
-        int a  = rand(), b = rand();
+    for(int i = 0; i < 10000; ++i) {
+        int a  = rand() % 32768, b = rand() % 32768;
         if(!D0.count(a)) {
             D.insert(a, b);
             D0.insert(map<int, int>::value_type(a, b));
         }
     }
     for(int i = 0; i < 10000; ++i) {
-        int a = rand();
+        int a = rand() % 32768;
         if(D0.count(a)) {
             D0.erase(a);
             D.erase(a);
         }
     }
     for(int i = 0; i < 10000; ++i) {
-        int a = rand(), b = rand();
+        int a = rand() % 32768, b = rand() % 32768;
         if(D0.count(a)) {
             D0[a] = b;
             D.modify(a, b);
@@ -205,18 +204,6 @@ bool test6() { // multiple
             ++it;
         }
     }
-    for(auto &it: D0) {
-        auto ret = D.query(it.first);
-        if(!ret.first) { cout << "No match" << endl; goto WRONG; }
-        if(ret.second != it.second) goto WRONG;
-    }
-    // for(int i = 0; i < 100000; ++i) {
-    //     int a = rand();
-    //     if(D0.count(a)) {
-    //         D0.erase(a);
-    //         D.erase(a);
-    //     }
-    // }
     for(auto &it: D0) {
         auto ret = D.query(it.first);
         if(!ret.first) { cout << "No match" << endl; goto WRONG; }
@@ -248,13 +235,11 @@ bool test7() {
 
 int main() {
     srand(time(NULL));
-    // cout << (test1()? "test1 passed." : "test1 failed") << endl;
-    // cout << (test2()? "test2 passed." : "test2 failed") << endl;
-    // for(int i = 0; i <= 100; ++i)
-    // cout << (test3()? "test3 passed." : "test3 failed") << endl;
-    // cout << (test4()? "test4 passed." : "test4 failed") << endl;
-    // cout << (test5()? "test5 passed." : "test5 failed") << endl;
-    // cout << (test6()? "test6 passed." : "test6 failed") << endl;
-    cout << (test7()? "test7 passed." : "test7 failed") << endl;
+    cout << (test1()? "test1 passed." : "test1 failed") << endl;
+    cout << (test2()? "test2 passed." : "test2 failed") << endl;
+    cout << (test3()? "test3 passed." : "test3 failed") << endl;
+    cout << (test4()? "test4 passed." : "test4 failed") << endl;
+    cout << (test5()? "test5 passed." : "test5 failed") << endl;
+    cout << (test6()? "test6 passed." : "test6 failed") << endl;
 }
 
