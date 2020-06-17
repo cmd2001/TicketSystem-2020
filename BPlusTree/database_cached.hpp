@@ -5,10 +5,11 @@
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
+#include <cassert>
 #include "database.hpp"
 #include "../include/List.hpp"
+#define debug cerr
 using namespace std;
-
 
 namespace mapA { // from https://github.com/battlin6/My_STLite/blob/master/mapA/map.hpp
     struct invalid_iterator {};
@@ -504,6 +505,17 @@ namespace mapA { // from https://github.com/battlin6/My_STLite/blob/master/mapA/
             }
             return end();
         }
+        iterator lower_bound(const Key &key) { // lower_bound by Amagi_Yukisaki.
+            Node *curNode=root, *mem = nullptr;
+            while(curNode!= nullptr){
+                if(!compare_func(curNode->value->first,key)) mem = curNode;
+                if(compare_func(key,curNode->value->first)) curNode=curNode->child[0];
+                else if(compare_func(curNode->value->first,key)) curNode=curNode->child[1];
+                else return iterator(this,curNode);
+            }
+            return mem == nullptr ? end() : iterator(this, mem);
+        }
+
         const_iterator find(const Key &key) const {
             Node* curNode=root;
             while(curNode!= nullptr){
@@ -521,7 +533,7 @@ namespace mapA { // from https://github.com/battlin6/My_STLite/blob/master/mapA/
 }
 
 namespace __Amagi {
-    constexpr size_t max_Cache_Size = 10;
+    constexpr size_t max_Cache_Size = 50;
 
     template <typename type_key,typename type_value>
     class database_cached {
@@ -532,15 +544,22 @@ namespace __Amagi {
             size_t quePos;
             type_value value;
             cache_Node(const int &_type, const size_t &_quePos, const type_value &_value): type(_type), quePos(_quePos), value(_value) {}
+            cache_Node() = default;
         };
+        /* read + read = read, read + insert = insert, insert + modify = modify, read + delete = delete
+         * insert + read = impossible, insert + insert = impossible, insert + modify = INSERT, insert + delete = NOTHING
+         * modify + read = impossible, modify + insert = impossible, modify + modify = modify, modify + delete = delete
+         * delete + read = impossible, delete + insert = modify, delete + modify = impossible, delete + delete = impossible
+         */
+        int type_table[4][4] = {{-1, -1, -1, -1}, {-1, -1, 1, 4}, {-1, -1, 2, 3}, {-1, 2, -1, -1}};
         mapA::map<type_key, cache_Node> cache;
         mapA::map<size_t, type_key> que;
-        size_t uid;
+        size_t uid, cur_size;
         void popQue() {
-            auto x = que.begin()->first;
+            auto x = que.begin()->second;
             que.erase(que.begin());
             auto y = cache[x];
-            cache.erase(x);
+            cache.erase(cache.find(x));
             if(y.type == 0) return; // nothing to do.
             else if(y.type == 1) core.insert(x, y.value);
             else if(y.type == 2) core.modify(x, y.value);
@@ -549,24 +568,57 @@ namespace __Amagi {
         void pushQue(const type_key &key, const type_value &value, const int &type) {
             if(cache.find(key) != cache.end()) {
                 auto y = cache[key];
-                que.erase(y.quePos);
-                y = cache_Node(type, ++uid, value);
+                // assert(que.find(y.quePos) != que.end());
+                if(que.find(y.quePos) == que.end()) {
+                    for(auto x: que) debug << x.first << " "; debug << endl;
+                    debug << y.quePos << endl;
+                    exit(0);
+                }
+                que.erase(que.find(y.quePos));
+                int new_type = type_table[y.type][type];
+                assert(new_type != -1);
+                if(new_type == 4) return;
+                y = cache_Node(new_type, ++uid, value);
                 cache[que[uid] = key] = y;
             } else {
                 if(cache.size() == max_Cache_Size) popQue();
+                // debug << que.size() << "    " << cache.size() << endl;
+                assert(que.size() == cache.size());
                 que[++uid] = key;
                 cache[key] = cache_Node(type, uid, value);
             }
         }
+        List<pair<type_key, type_value> > cache_Range(const type_key &k1, const type_key &k2) {
+            List<pair<type_key, type_value> > ret;
+            auto cur = cache.lower_bound(k1);
+            while(cur != cache.end() && !(k2 < cur->first)) {
+                if(cur->second.type == 1) ret.push_back(make_pair(cur->first, cur->second.value));
+                ++cur;
+            }
+            return ret;
+        }
+        List<type_value> merge_Sort(List<pair<type_key, type_value> > &a, List<pair<type_key, type_value> > b) {
+            List<type_value> ret;
+            auto p1 = a.begin(), p2 = b.begin();
+            while(p1 != a.end() && p2 != b.end()) {
+                if((*p1).first < (*p2).first) ret.push_back((*p1).second), ++p1;
+                else ret.push_back((*p2).second), ++p2;
+            }
+            while(p1 != a.end()) ret.push_back((*p1).second), ++p1;
+            while(p2 != b.end()) ret.push_back((*p1).second), ++p1;
+            return ret;
+        }
     public:
-        database_cached(const string &s): core(s), uid(0) {}
+        database_cached(const string &s): core(s), uid(0) {cur_size = core.size();}
         void insert(const type_key &key, const type_value &value) {
             if(!max_Cache_Size) return core.insert(key, value); // defeat cache
+            ++cur_size;
             pushQue(key, value, 1);
         }
         bool erase(const type_key &key) {
             if(!max_Cache_Size) return core.erase(key);
-            pushQue(key, value_type(), 3);
+            pushQue(key, type_value(), 3);
+            --cur_size;
             return 1; // assert key exists.
         }
         bool modify(const type_key &key, const type_value &value) {
@@ -578,33 +630,46 @@ namespace __Amagi {
             if(!max_Cache_Size) return core.query(key);
             if(cache.find(key) != cache.end()) { // found in cache
                 auto y = cache[key];
-                if(y.type == 3) return make_pair(0, type_key()); // erased
-                return make_pair(1, key.value());
+                if(y.type == 3) return make_pair(false, type_value()); // erased
+                return make_pair(true, y.value);
             } else { // not found in cache
                 auto ret = core.query(key);
-                if(ret.first) pushQue(key, ret.value, 0);
+                if(ret.first) pushQue(key, ret.second, 0);
                 return ret;
             }
         }
         List<type_value> range(const type_key &k1, const type_key &k2) {
             if(!max_Cache_Size) return core.range(k1, k2);
             auto ref = core.range2(k1, k2);
-            List<type_value> ret;
-            for(x: ref) {
-                if(cache.find(x.first) == cache.end()) ret.push_back(x.second);
+            List<pair<type_key, type_value> > ret;
+            for(auto x: ref) {
+                if(cache.find(x.first) == cache.end()) ret.push_back(x);
                 else {
-                    auto tp = cache[x];
-                    if(tp.type != 3) ret.push_back(tp.value);
+                    auto tp = cache[x.first];
+                    assert(tp.type == 0 || tp.type == 2) ;
+                    if(tp.type != 3) ret.push_back(make_pair(x.first, tp.value));
                 }
             }
-            return ret;
+            return merge_Sort(ret, cache_Range(k1, k2));
+        }
+        size_t size() {
+            if(!max_Cache_Size) return core.size();
+            return cur_size;
+        }
+        bool empty() {
+            if(!max_Cache_Size) return core.empty();
+            return !size();
+        }
+        void clear() {
+            if(!max_Cache_Size) return core.clear();
+            core.clear(), cache.clear(), que.clear(), cur_size = 0;
         }
         ~database_cached() { // write back all cached data
             for(auto x: cache) {
-                if(x.second.type_value == 0) continue;
-                else if(x.second.type_value == 1) core.insert(x.first, x.second.value);
-                else if(x.second.type_value == 2) core.modify(x.first, x.second.value);
-                else if(x.second.type_value == 3) core.erase(x.first);
+                if(x.second.type == 0) continue;
+                else if(x.second.type == 1) core.insert(x.first, x.second.value);
+                else if(x.second.type == 2) core.modify(x.first, x.second.value);
+                else if(x.second.type == 3) core.erase(x.first);
             }
         }
     };

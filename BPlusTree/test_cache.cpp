@@ -2,10 +2,11 @@
 #include <ctime>
 #include "database_cached.hpp"
 using namespace std;
+using namespace __Amagi;
 
 
 bool test1() { // insert & query
-    database<int, int> D("file_test");
+    database_cached<int, int> D("file_test");
     map<int, int> D0;
     D.clear();
     for(int i = 0; i < 10000; ++i) {
@@ -36,7 +37,7 @@ bool test1() { // insert & query
 }
 
 bool test2() { // modify
-    database<int, int> D("file_test");
+    database_cached<int, int> D("file_test");
     map<int, int> D0;
     D.clear();
     for(int i = 0; i < 10000; ++i) {
@@ -63,7 +64,7 @@ bool test2() { // modify
 }
 
 bool test3() { // erase
-    database<int, int> D("file_test");
+    database_cached<int, int> D("file_test");
     map<int, int> D0;
     D.clear();
     for(int i = 0; i < 100000; ++i) {
@@ -92,7 +93,7 @@ bool test3() { // erase
 }
 
 bool test4() { // range
-    database<int, int> D("file_test");
+    database_cached<int, int> D("file_test");
     map<int, int> D0;
     D.clear();
     for(int i = 0; i < 10000; ++i) {
@@ -125,7 +126,7 @@ bool test4() { // range
 }
 
 bool test5() { // clear
-    database<int, int> D("file_test");
+    database_cached<int, int> D("file_test");
     map<int, int> D0;
     D.clear();
     for(int i = 0; i < 10000; ++i) {
@@ -164,7 +165,7 @@ bool test5() { // clear
 }
 
 bool test6() { // multiple
-    database<int, int> D("file_test");
+    database_cached<int, int> D("file_test");
     map<int, int> D0;
     D.clear();
     for(int i = 0; i < 10000; ++i) {
@@ -216,7 +217,7 @@ bool test6() { // multiple
 }
 
 bool test7() {
-    database<int, int> D("file_test");
+    database_cached<int, int> D("file_test");
     map<int, int> D0;
     D.clear();
     // for(int i = 0; i < 100000; ++i) {
