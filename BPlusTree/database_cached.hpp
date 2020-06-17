@@ -546,12 +546,12 @@ namespace __Amagi {
             cache_Node(const int &_type, const size_t &_quePos, const type_value &_value): type(_type), quePos(_quePos), value(_value) {}
             cache_Node() = default;
         };
-        /* read + read = read, read + insert = insert, insert + modify = modify, read + delete = delete
+        /* read + read = impossible, read + insert = insert, insert + modify = modify, read + delete = delete
          * insert + read = impossible, insert + insert = impossible, insert + modify = INSERT, insert + delete = NOTHING
          * modify + read = impossible, modify + insert = impossible, modify + modify = modify, modify + delete = delete
          * delete + read = impossible, delete + insert = modify, delete + modify = impossible, delete + delete = impossible
          */
-        int type_table[4][4] = {{0, 1, 2, 3}, {-1, -1, 1, 4}, {-1, -1, 2, 3}, {-1, 2, -1, -1}};
+        int type_table[4][4] = {{-1, 1, 2, 3}, {-1, -1, 1, 4}, {-1, -1, 2, 3}, {-1, 2, -1, -1}};
         mapA::map<type_key, cache_Node> cache;
         mapA::map<size_t, type_key> que;
         size_t uid, cur_size;
@@ -604,7 +604,7 @@ namespace __Amagi {
                 else ret.push_back((*p2).second), ++p2;
             }
             while(p1 != a.end()) ret.push_back((*p1).second), ++p1;
-            while(p2 != b.end()) ret.push_back((*p1).second), ++p1;
+            while(p2 != b.end()) ret.push_back((*p2).second), ++p2;
             return ret;
         }
     public:
@@ -639,6 +639,7 @@ namespace __Amagi {
             }
         }
         List<type_value> range(const type_key &k1, const type_key &k2) {
+            // debug << "called range" << endl;
             if(!max_Cache_Size) return core.range(k1, k2);
             auto ref = core.range2(k1, k2);
             List<pair<type_key, type_value> > ret;
