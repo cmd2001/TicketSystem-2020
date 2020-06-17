@@ -19,8 +19,8 @@ template <typename Key,typename Value>
 class database{
 private:
     string Filename;
-    static const int maxKeyNum=16;
-    static const int miniKeyNum=4;
+    static const int maxKeyNum=128;
+    static const int miniKeyNum=maxKeyNum/2;
     static const int MaxSize=maxKeyNum+2;
     std::fstream Fileio;
 
@@ -36,6 +36,7 @@ private:
             isLeaf=false;
             keyNum=-1;
         }
+        idxNode(const idxNode &other) = default;
     };
     struct dataNode{
         Key key[MaxSize];
@@ -45,7 +46,7 @@ private:
             keyNum=0;
             nextoffset=-1;
         }
-        dataNode(const dataNode &o) = default;
+        dataNode(const dataNode &other) = default;
     };
 
     const int idxNodeSize=sizeof(idxNode);
