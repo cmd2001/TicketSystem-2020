@@ -46,14 +46,13 @@ int main() {
 }
 
 /*
-add_user -c asdasd -u mlj -p 19679145 -n ??? -m 897744820@qq.com -g 10
+add_user -c asdasd -u mlj -p 19679145 -n 闵乐钧 -m 897744820@qq.com -g 10
 login -u mlj -p 19679145
 modify_profile -c mlj -u mlj -g 10
 
-add_train -i HAPPY_TRAIN -n 3 -m 1000 -s ??|??|?? -p 115|514 -x 19:19 -t 600|600 -o 5 -d 06-01|08-17 -y G
+add_train -i HAPPY_TRAIN -n 3 -m 1000 -s 上院|中院|下院 -p 115|514 -x 19:19 -t 600|600 -o 5 -d 06-01|08-17 -y G
 query_train -d 07-01 -i HAPPY_TRAIN
 release_train -i  HAPPY_TRAIN
-query_ticket -s ?? -t ?? -d 08-17
-buy_ticket -u mlj -i HAPPY_TRAIN -d 08-17 -n 800 -f ?? -t ??
-buy_ticket -u mlj -i HAPPY_TRAIN -d 08-17 -n 100 -f ?? -t ??
+query_ticket -s 中院 -t 下院 -d 08-17
+buy_ticket -u mlj -i HAPPY_TRAIN -d 08-16 -n 800 -f 上院 -t 下院
 */

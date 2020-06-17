@@ -948,10 +948,8 @@ public:
 
     List<Value> range(const Key &k1, const Key &k2){
         List<Value> newList;
-
         if(size()==0) //when file is empty,specially judge
             return newList;
-
         auto now=Lower_bound(k1);
         //加入now.valid的终止条件
         //以防迭代器越界 陷入死循环 草 被坑惨了
