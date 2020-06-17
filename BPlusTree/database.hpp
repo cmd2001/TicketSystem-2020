@@ -937,6 +937,8 @@ public:
     }
 
     bool modify(const Key &k,const Value &data){
+        //use function insert to realize it
+        //you can see it in Line 326
         if(!find(k))
             return false;
         else
@@ -958,6 +960,22 @@ public:
             //cout<<now.value()<<endl;
             now++;
         }
+        return newList;
+    }
+
+    List<pair<Key,Value>> range2(const Key &k1, const Key &k2){
+        List<pair<Key,Value>> newList;
+
+        if(size()==0) //when file is empty,specially judge
+            return newList;
+
+        auto now=Lower_bound(k1);
+
+        while(!(k2<now.key())&&now.valid()){
+            newList.push_back(make_pair(now.key(),now.value()));
+            now++;
+        }
+
         return newList;
     }
 
@@ -983,6 +1001,10 @@ public:
             delete r;
         }
         return true;
+    }
+
+    void save(){
+        Fileio.flush();
     }
 
 };
