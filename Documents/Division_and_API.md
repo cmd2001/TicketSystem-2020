@@ -21,7 +21,7 @@ A --> B[backend.cpp]
 B --> F(前端GUI)
 ```
 
-其中`databse.hpp​`为人员B所完成数据库核心。
+其中`databse.hpp`为人员B所完成数据库核心。
 
 `core.hpp`为人员C所完成的算法程序（注意要封装为对象，在构造、析构函数打开、关闭相应文件）。
 
@@ -51,9 +51,15 @@ B --> F(前端GUI)
 
 `range(Key1, Key2)`：查询区间`[Key1, Key2]`对应的全部`Value`，返回`List<typeof Value>`，表示查询到的值。**其中`List`为自定义的列表类，支持迭代器遍历。**（为什么不使用`stl`？因为不允许。为什么能用`std::pair`？因为`std::pair`在`iostream`中有包含）**为什么不返回对应的`Key`？因为可以保证Key在Value中已被包含。**（这一点在core.hpp的实现中将会提及）
 
+`range2(Key1, Key2)`: 意义与`range`相似，与之不同的是返回`List<pair<typeof Key, typeof Value>>`, 用于缓存处理，主程序不涉及。
+
 `clear()`：清空名为`Filename`的数据库文件。
 
 `empty()`：返回bool类型，表示该数据库是否为空。
+
+`size()`：返回size_t类型，表示当前B+树的大小。
+
+`save()`: 提供一个flush的显式接口。
 
 ### `core.hpp`
 
