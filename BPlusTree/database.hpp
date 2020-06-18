@@ -19,7 +19,7 @@ template <typename Key,typename Value>
 class database{
 private:
     string Filename;
-    static const int maxKeyNum=128;
+    static const int maxKeyNum=18;
     static const int miniKeyNum=maxKeyNum/2;
     static const int MaxSize=maxKeyNum+2;
     std::fstream Fileio;
