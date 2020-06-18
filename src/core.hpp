@@ -1,7 +1,8 @@
 #ifndef TICKET_CLASS_HPP
 #define TICKET_CLASS_HPP
 
-#include "../BPlusTree/database.hpp"
+#include "../BPlusTree/database_cached.hpp"
+using __Amagi::database_cached;
 #include "exceptions.hpp"
 #include "tools.hpp"
 #include <cstdio>
@@ -272,7 +273,7 @@ public:
     class cmp_transfer_cost {
     public:
         bool operator()(const type_train_transfer_tnc &a, const type_train_transfer_tnc &b) {
-            return a.cost == b.cost? a.time_1 < b.time_1 : a.time < b.time;
+            return a.cost == b.cost? a.time_1 < b.time_1 : a.cost < b.cost;
         }
     };
 
@@ -337,13 +338,13 @@ public:
         }
     };
 
-    database<type_userName, type_user> Users;
-    database<type_userName, int> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
-    database<type_trainID, type_train> Trains_base;
-    database<type_trainID, type_train_release> Trains_released;
-    database<type_stationName_startTime, std::pair<type_trainID, int>> Database_stations; // 按车站和出发时间记录车次和该站编号
-    database<type_userName_orderID, type_order> Database_orders;
-    database<type_queue_key, type_userName_orderID> Database_queue; // 候补队列，value为order_key和totalID
+    database_cached<type_userName, type_user> Users;
+    database_cached<type_userName, int> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
+    database_cached<type_trainID, type_train> Trains_base;
+    database_cached<type_trainID, type_train_release> Trains_released;
+    database_cached<type_stationName_startTime, std::pair<type_trainID, int>> Database_stations; // 按车站和出发时间记录车次和该站编号
+    database_cached<type_userName_orderID, type_order> Database_orders;
+    database_cached<type_queue_key, type_userName_orderID> Database_queue; // 候补队列，value为order_key和totalID
     int totalID_runtime; // 运行时的总orderID，在退出时写入文件file_totalID
 
 private:
@@ -368,7 +369,7 @@ public:
         // 若在线列表非空则清空在线列表（针对强制退出情况）
         if(!Cur_users.empty()) Cur_users.clear();
 
-        memset(MINID, -128, sizeof(MINID));
+        memset(MINID, 0, sizeof(MINID));
         memset(MAXID, 127, sizeof(MAXID));
     }
 
@@ -854,7 +855,7 @@ public:
 
         // 思路：查询当天经过起始站的车次ID，在Trains中查出车次信息，找到之后经过到达站的车次，存入list中排序
         auto st = Database_stations.range(type_stationName_startTime(startS.c_str(), date, MINID), type_stationName_startTime(startS.c_str(), date + 1439, MAXID));
-        if(st.empty()) return "0";
+        if(st.empty()) { return "0"; }
         train_return this_t;
         auto *list = new type_train_tnc[st.size()]; // 此处有new
         int cnt = 0;
@@ -953,11 +954,11 @@ public:
                         int price_1 = t_1.pre_prices[i] - t_1.pre_prices[it_1.second], price_2 = t_2.pre_prices[it_2.second] - t_2.pre_prices[j];
                         int seats_1 = t_release_1.queryseats(it_1.second, i), seats_2 = t_release_2.queryseats(j, it_2.second);
                         int time_1 = t_1.arriving[i] - t_1.leaving[it_1.second];
-                        int time_2 = t_2.arriving[it_2.second] - t_2.leaving[j];
+                        int total_time = t_2.arriving[it_2.second].plusdate(t_release_2.startdate.date) - t_1.leaving[it_1.second].plusdate(t_release_1.startdate.date);
                         // 先把输出信息写好存进string
                         string out = (string)t_1.trainID + " " + startS + " " + t_1.leaving[it_1.second].plusdate(t_release_1.startdate.date).get() + " -> " + t_1.stations[i] + " " + t_1.arriving[i].plusdate(t_release_1.startdate.date).get() + " " + std::to_string(price_1) + " " + std::to_string(seats_1) + "\n";
                         out += (string)t_2.trainID + " " + t_2.stations[j] + " " + t_2.leaving[j].plusdate(t_release_2.startdate.date).get() + " -> " + endS + " " + t_2.arriving[it_2.second].plusdate(t_release_2.startdate.date).get() + " " + std::to_string(price_2) + " " + std::to_string(seats_2);
-                        type_train_transfer_tnc newtnc(out, time_1, time_1 + time_2, price_1 + price_2);
+                        type_train_transfer_tnc newtnc(out, time_1, total_time, price_1 + price_2);
                         if(choosed_transfer.out.empty()) choosed_transfer = newtnc;
                         else {
                             if(flag) {
