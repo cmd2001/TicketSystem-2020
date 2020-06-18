@@ -215,6 +215,24 @@ bool test6() { // multiple
     return 0;
 }
 
+bool test7() {
+    database<int, int> D("file_test");
+    map<int, int> D0;
+    D.clear();
+    // for(int i = 0; i < 100000; ++i) {
+    //     int a  = rand(), b = rand();
+    //     if(!D0.count(a)) {
+    //         D.insert(a, b);
+    //         D0.insert(map<int, int>::value_type(a, b));
+    //     }
+    // }
+    D.insert(1, 10);
+    auto list1 = D.range(2, 2);
+    auto it = list1.begin();
+    cout << *it << endl;
+    return 1;
+}
+
 int main() {
     srand(time(NULL));
     cout << (test1()? "test1 passed." : "test1 failed") << endl;
