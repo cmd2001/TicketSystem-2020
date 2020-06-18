@@ -159,7 +159,7 @@ public:
     public:
         char trainID[28];
         int stationNum = 0; // 0-100
-        char stations[101][42]; // 10个汉字以内
+        char stations[101][52]; // 10个汉字以内
         int pre_prices[100]; //票价前缀和
         int seatNum = 0;    // 0-100000
         datentime startTime;
@@ -214,7 +214,7 @@ public:
 
     class type_stationName_startTime { // 包括列车runtimeID作为第三关键字（防止key值相同的情况发生）
     public:
-        char stationName[42];
+        char stationName[52];
         datentime startTime;
         char runtimeID[28];
         type_stationName_startTime() = default;
@@ -301,7 +301,7 @@ public:
         Ordertype _type;
         char userName[22];
         char runtimeID[28];
-        char startS[42], endS[42];
+        char startS[52], endS[52];
         int startNum, endNum; // 在车次中的站号
         datentime leavingTime, arrivingTime;
         int price;
@@ -370,7 +370,7 @@ public:
         if(!Cur_users.empty()) Cur_users.clear();
 
         memset(MINID, 0, sizeof(MINID));
-        memset(MAXID, 127, sizeof(MAXID));
+        memset(MAXID, 127, sizeof(MAXID)); MAXID[27] = '\0';
     }
 
 private:
