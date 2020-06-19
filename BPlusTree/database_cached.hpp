@@ -607,6 +607,17 @@ namespace __Amagi {
             while(p2 != b.end()) ret.push_back((*p2).second), ++p2;
             return ret;
         }
+        List<pair<type_key, type_value> > merge_Sort2(List<pair<type_key, type_value> > &a, List<pair<type_key, type_value> > b) {
+            List<pair<type_key, type_value> > ret;
+            auto p1 = a.begin(), p2 = b.begin();
+            while(p1 != a.end() && p2 != b.end()) {
+                if((*p1).first < (*p2).first) ret.push_back(*p1++);
+                else ret.push_back(*p2++);
+            }
+            while(p1 != a.end()) ret.push_back(*p1++);
+            while(p2 != b.end()) ret.push_back(*p2++);
+            return ret;
+        }
     public:
         string __name;
         database_cached(const string &s): core(s), uid(0), __name(s) {cur_size = core.size();}
@@ -639,7 +650,6 @@ namespace __Amagi {
             }
         }
         List<type_value> range(const type_key &k1, const type_key &k2) {
-            // debug << "called range" << endl;
             if(!max_Cache_Size) return core.range(k1, k2);
             auto ref = core.range2(k1, k2);
             List<pair<type_key, type_value> > ret;
@@ -652,6 +662,20 @@ namespace __Amagi {
                 }
             }
             return merge_Sort(ret, cache_Range(k1, k2));
+        }
+        List<pair<type_key, type_value> > range2(const type_key &k1, const type_key &k2) {
+            if(!max_Cache_Size) return core.range2(k1, k2);
+            auto ref = core.range2(k1, k2);
+            List<pair<type_key, type_value> > ret;
+            for(auto x: ref) {
+                if(cache.find(x.first) == cache.end()) ret.push_back(x);
+                else {
+                    auto tp = cache[x.first];
+                    assert(tp.type != 1) ;
+                    if(tp.type != 3) ret.push_back(make_pair(x.first, tp.value));
+                }
+            }
+            return merge_Sort2(ret, cache_Range(k1, k2));
         }
         size_t size() {
             if(!max_Cache_Size) return core.size();
