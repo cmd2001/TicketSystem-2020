@@ -36,6 +36,7 @@ private:
             isLeaf=false;
             keyNum=-1;
         }
+        idxNode(const idxNode &other) = default;
     };
     struct dataNode{
         Key key[MaxSize];
@@ -45,7 +46,7 @@ private:
             keyNum=0;
             nextoffset=-1;
         }
-        dataNode(const dataNode &o) = default;
+        dataNode(const dataNode &other) = default;
     };
 
     const int idxNodeSize=sizeof(idxNode);
@@ -117,11 +118,13 @@ public:
 
 public:
     bool empty() const {
-        return root->keyNum==-1;
+        return curSize==0;
     }
+
     size_t size() const {
         return curSize;
     }
+
     void clear(){
         delete root;
         delete leftHead;
@@ -191,15 +194,19 @@ public:
         Value &operator*(){
             return node.value[pos];
         }
+
         Value *operator->(){
             return node.value+pos;
         }
+
         bool valid(){
             return pos>=0;
         }
+
         Key key(){
             return node.key[pos];
         }
+
         Value value(){
             return node.data[pos];
         }
@@ -879,8 +886,9 @@ public:
 
 public:
     pair<bool,Value> query(const Key &k){
-        if(search(k).valid())
-            return make_pair(true,search(k).value());
+        auto x=search(k);
+        if(x.valid())
+            return make_pair(true,x.value());
         else
             return make_pair(false,Value());
     }
