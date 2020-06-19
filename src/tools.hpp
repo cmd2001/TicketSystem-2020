@@ -5,6 +5,16 @@
 
 namespace MLJ {
 
+int _strcmp_(const char *a, const char *b) {
+    int len = (strlen(a) < strlen(b))? strlen(b) : strlen(a);
+    for(int i = 0; i < len; ++i) {
+        if((int)a[i] < (int)b[i]) return -1;
+        else if((int)a[i] > (int)b[i]) return 1;
+        else continue;
+    }
+    return 0;
+}
+
 // 按照ch分隔字符串，参考python中的 a = s.split(' ');
 void split(const std::string &src, std::string *arg, int &cnt, const char &ch) {
     int i;
