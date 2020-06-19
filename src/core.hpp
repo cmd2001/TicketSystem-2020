@@ -45,8 +45,8 @@ public:
         wrapped_cstr() = default;
         wrapped_cstr(const string &s) { strcpy(str, s.c_str()); }
         wrapped_cstr(const char *s) { strcpy(str, s); }
-        bool operator<(const wrapped_cstr &o) const { return MLJ::_strcmp_(str, o.str) < 0; }
-        bool operator==(const wrapped_cstr &o) const { return MLJ::_strcmp_(str, o.str) == 0; }
+        bool operator<(const wrapped_cstr &o) const { return strcmp(str, o.str) < 0; }
+        bool operator==(const wrapped_cstr &o) const { return strcmp(str, o.str) == 0; }
     }type_userName, type_trainID;
 
     class datentime {
@@ -150,7 +150,7 @@ public:
             return os;
         }
         friend bool operator == (const type_user &a, const type_user &b) {
-            return !(MLJ::_strcmp_(a.userName, b.userName) || MLJ::_strcmp_(a.password, b.password) || MLJ::_strcmp_(a.name, b.name) || MLJ::_strcmp_(a.mailAddr, b.mailAddr)) && a.privilege == b.privilege;
+            return !(strcmp(a.userName, b.userName) || strcmp(a.password, b.password) || strcmp(a.name, b.name) || strcmp(a.mailAddr, b.mailAddr)) && a.privilege == b.privilege;
         }
     public:
         char userName[username_SIZE];
@@ -187,7 +187,7 @@ public:
             memset(leaving, 0, sizeof(leaving));
         }
         inline bool operator==(const type_train &o) const {
-            return MLJ::_strcmp_(trainID, o.trainID) == 0;
+            return strcmp(trainID, o.trainID) == 0;
         }
     };
     typedef std::pair<bool, type_train> train_return;
@@ -205,7 +205,7 @@ public:
             for(int i = 0; i < stationNum; ++i) seats[i] = _seatNum;
         }
         inline bool operator==(const type_train_release &o) const {
-            return MLJ::_strcmp_(runtimeID, o.runtimeID) == 0;
+            return strcmp(runtimeID, o.runtimeID) == 0;
         }
 
         // TODO: 性能优化
@@ -235,8 +235,8 @@ public:
             strcpy(runtimeID, _runtimeid);
         }
         inline bool operator<(const type_stationName_startTime &o) const {
-            int _ = MLJ::_strcmp_(stationName, o.stationName);
-            return (_ == 0)? ((startTime == o.startTime)? MLJ::_strcmp_(runtimeID, o.runtimeID) < 0 : startTime < o.startTime) : _ < 0;
+            int _ = strcmp(stationName, o.stationName);
+            return (_ == 0)? ((startTime == o.startTime)? strcmp(runtimeID, o.runtimeID) < 0 : startTime < o.startTime) : _ < 0;
         }
     };
 
@@ -254,7 +254,7 @@ public:
             strcpy(runtimeID, _id);
         }
         bool operator==(const type_query_value &o) const {
-            return MLJ::_strcmp_(runtimeID, o.runtimeID) == 0 && which_in_order == o.which_in_order;
+            return strcmp(runtimeID, o.runtimeID) == 0 && which_in_order == o.which_in_order;
         }
     };
 
@@ -316,11 +316,11 @@ public:
             ID = _id;
         }
         inline bool operator<(const type_userName_orderID &o) const {
-            int ans = MLJ::_strcmp_(userName, o.userName);
+            int ans = strcmp(userName, o.userName);
             return (ans == 0)? ID > o.ID : ans < 0; // 倒序排列，所以ID越大越先
         }
         inline bool operator==(const type_userName_orderID &o) const {
-            return MLJ::_strcmp_(userName, o.userName) == 0 && ID == o.ID;
+            return strcmp(userName, o.userName) == 0 && ID == o.ID;
         }
     };
     enum Ordertype { success, pending, refunded };
@@ -337,8 +337,8 @@ public:
         int num;
         type_order() = default;
         inline bool operator==(const type_order &o) const {
-            return _type == o._type && MLJ::_strcmp_(userName, o.userName) == 0 && MLJ::_strcmp_(runtimeID, o.runtimeID) == 0
-            && MLJ::_strcmp_(startS, o.startS) == 0 && MLJ::_strcmp_(endS, o.endS) == 0 && num == o.num;
+            return _type == o._type && strcmp(userName, o.userName) == 0 && strcmp(runtimeID, o.runtimeID) == 0
+            && strcmp(startS, o.startS) == 0 && strcmp(endS, o.endS) == 0 && num == o.num;
         }
         inline string get() const {
             string ans = "";
@@ -362,7 +362,7 @@ public:
             strcpy(runtimeID, train_id);
         }
         inline bool operator<(const type_queue_key &o) const {
-            int ans = MLJ::_strcmp_(runtimeID, o.runtimeID);
+            int ans = strcmp(runtimeID, o.runtimeID);
             return (ans == 0)? totalID < o.totalID : ans < 0;
         }
     };
@@ -398,7 +398,7 @@ public:
         // 若在线列表非空则清空在线列表（针对强制退出情况）
         if(!Cur_users.empty()) Cur_users.clear();
 
-        memset(MINID, -128, sizeof(MINID) - 1); MINID[sizeof(MINID) - 1] = '\0';
+        memset(MINID, 0, sizeof(MINID) - 1); MINID[sizeof(MINID) - 1] = '\0';
         memset(MAXID, 127, sizeof(MAXID) - 1); MAXID[sizeof(MAXID) - 1] = '\0';
     }
 
@@ -563,7 +563,7 @@ public:
         for(int i = 0; i < 2; ++i) if(!vis[i]) throw illegal_arg();
         if(!cur_u.first || !that_u.first) return "-1";
         this_u = Users.query(username);
-        if(MLJ::_strcmp_(this_u.second.userName, that_u.second.userName) != 0 && this_u.second.privilege <= that_u.second.privilege) return "-1";
+        if(strcmp(this_u.second.userName, that_u.second.userName) != 0 && this_u.second.privilege <= that_u.second.privilege) return "-1";
         // 可查询当且仅当this_u权限大于that.u，或this_u和that_u是一个人
         const type_user &u = that_u.second;
         ans = (string)u.userName + " " + u.name + " " + u.mailAddr + " " + std::to_string(u.privilege);
@@ -621,7 +621,7 @@ public:
         if(!cur_u.first || !that_u.first) return "-1";
         this_u = Users.query(cur_username);
         if(!this_u.first) throw unknown_wrong();
-        if(MLJ::_strcmp_(this_u.second.userName, that_u.second.userName) != 0 && (this_u.second.privilege <= that_u.second.privilege || this_u.second.privilege <= newuser.privilege)) return "-1";
+        if(strcmp(this_u.second.userName, that_u.second.userName) != 0 && (this_u.second.privilege <= that_u.second.privilege || this_u.second.privilege <= newuser.privilege)) return "-1";
         // 可修改当且仅当this_u权限大于that.u，或this_u和that_u是一个人
 
         strcpy(newuser.userName, that_u.second.userName);
@@ -883,7 +883,7 @@ public:
         if(startS == endS) return "0";
 
 //        cout << startS.c_str() << endl << endS.c_str() << endl;
-//        cout << MLJ::_strcmp_(MINID, endS.c_str()) << " " << MLJ::_strcmp_(MAXID, endS.c_str()) << endl;
+//        cout << strcmp(MINID, endS.c_str()) << " " << strcmp(MAXID, endS.c_str()) << endl;
 //        cout << (type_stationName_startTime(endS.c_str(), date, MINID) < )
 
         // 思路：查询当天经过起始站的车次ID，在Trains中查出车次信息，找到之后经过到达站的车次，存入list中排序
@@ -902,7 +902,7 @@ public:
         // }
         for(auto &it_1: st) {
             for(auto &it_2: et) {
-                if(MLJ::_strcmp_(it_1.runtimeID, it_2.runtimeID) == 0 && it_1.which_in_order < it_2.which_in_order) {
+                if(strcmp(it_1.runtimeID, it_2.runtimeID) == 0 && it_1.which_in_order < it_2.which_in_order) {
                     string trainID = string(it_1.runtimeID).substr(0, strlen(it_1.runtimeID) - 6);
                     const type_train_release t_release = get_release(it_1.runtimeID);
                     int price = it_2.pre_price - it_1.pre_price;
@@ -990,7 +990,7 @@ public:
                 for(int i = it_1.which_in_order + 1; i < t_1.stationNum; ++i) {
                     for(int j = it_2.which_in_order - 1; j >= 0; --j) {
                         if(!(t_2.leaving[j].plusdate(startdate_2.date) > t_1.arriving[i].plusdate(startdate_1.date))) { out_of_bound = true; break; }
-                        if (MLJ::_strcmp_(t_2.stations[j], t_1.stations[i]) == 0) {
+                        if (strcmp(t_2.stations[j], t_1.stations[i]) == 0) {
                             have_legal_ones = true;
 
                             const type_train_release t_release_1 = get_release(it_1.runtimeID);
@@ -1085,7 +1085,7 @@ public:
         }
         for(int i = 0; i < 6; ++i) if(!vis[i]) throw illegal_arg();
         if(!cur_u.first) return "-1";
-        if(MLJ::_strcmp_(o.startS, o.endS) == 0) return "-1";
+        if(strcmp(o.startS, o.endS) == 0) return "-1";
         // cout << o.userName << endl;
         this_u = Users.query(o.userName); // 查一下该用户的信息
         if(!this_u.first) throw unknown_wrong();
@@ -1099,13 +1099,13 @@ public:
         int p = -1, q = -1; // 找到这两站的编号
         datentime leavingtime_from_startS; // 记录起始站的时间
         for(int i = 0; i < t.stationNum; ++i) {
-            if(MLJ::_strcmp_(o.startS, t.stations[i]) == 0) {
+            if(strcmp(o.startS, t.stations[i]) == 0) {
                 if(q != -1) return "-1";
                 else {
                     p = i;
                     leavingtime_from_startS = t.leaving[i];
                 }
-            } else if(MLJ::_strcmp_(o.endS, t.stations[i]) == 0) {
+            } else if(strcmp(o.endS, t.stations[i]) == 0) {
                 if(p == -1) return "-1";
                 q = i;
             }
