@@ -22,7 +22,7 @@ private:
     static const int maxKeyNum=128;
     static const int miniKeyNum=maxKeyNum/2;
     static const int MaxSize=maxKeyNum+2;
-    std::fstream Fileio;
+    FILE *Fileio= nullptr;
 
 private:
     /*key number is 0-base
@@ -52,6 +52,23 @@ private:
     const int idxNodeSize=sizeof(idxNode);
     const int dataNodeSize=sizeof(dataNode);
 
+
+private:
+    template <class X>
+    void Read(X x,const int& size){
+        fread(reinterpret_cast<char *>(x),size,1,Fileio);
+    }
+
+    template <class X>
+    void Write(X x,const int& size){
+        fwrite(reinterpret_cast<char *>(x),size,1,Fileio);
+    }
+
+    void SeekFromBeg(const int& off_set){
+        fseek(Fileio,off_set,SEEK_SET);
+    }
+
+
 private:
     /*关于leftHand：
      * 本来我是想实现类似于迭代器的dataNode实现
@@ -69,51 +86,56 @@ public:
     /*
      * reference https://blog.csdn.net/hcf999/article/details/77864456
      * 可以判断几种不同模式下是否自动创建文件以及open的成败与否
+     * 这是关于C++的文件读写
+     * */
+    /* 至于C语言 FILE*的读写
+     * reference https://www.bliner.me/2018/10/C_course_064_operation_file_binary_read_and_write_file/
+     * https://blog.csdn.net/qicheng777/article/details/75458025
      * */
     database(const string &s):Filename(s){
-        Fileio.open(Filename,ios::binary|ios::ate|ios::in|ios::out);
+        Fileio=fopen(Filename.c_str(),"rb");
         //这种打开在文件不存在的情况下会open失败
 
-        if(Fileio.is_open()){  //the file exists
+        if(Fileio!= nullptr){  //the file exists
             //read the message from an existing file
 
             leftHead=new dataNode;
             root=new idxNode;
 
-            Fileio.seekg(0, std::ios::beg);
-            Fileio.read(reinterpret_cast<char *>(&curSize), sizeof(int));
-            Fileio.read(reinterpret_cast<char *>(&_offset), sizeof(int));
-            Fileio.read(reinterpret_cast<char *>(leftHead), dataNodeSize);
-            Fileio.read(reinterpret_cast<char *>(root), idxNodeSize);
+            SeekFromBeg(0);
+            Read((&curSize), sizeof(int));
+            Read((&_offset), sizeof(int));
+            Read((leftHead), dataNodeSize);
+            Read((root), idxNodeSize);
         }else{
             leftHead=new dataNode;
             root=new idxNode;
             _offset=2*sizeof(int)+dataNodeSize + idxNodeSize;
             curSize=0;
 
-            Fileio.open(Filename,ios::out);
-            Fileio.close();  //create the file
+            Fileio=fopen(Filename.c_str(),"wb");
+            fclose(Fileio);  //create the file
 
-            Fileio.open(Filename,ios::binary|ios::ate|ios::in|ios::out);
-            Fileio.seekp(0, std::ios::beg);
-            Fileio.write(reinterpret_cast<char *>(&curSize), sizeof(int));
-            Fileio.write(reinterpret_cast<char *>(&_offset), sizeof(int));
-            Fileio.write(reinterpret_cast<char *>(leftHead), dataNodeSize);
-            Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
-            Fileio.flush();
+            Fileio=fopen(Filename.c_str(),"rb+");
+            SeekFromBeg(0);
+            Write((&curSize), sizeof(int));
+            Write((&_offset), sizeof(int));
+            Write((leftHead), dataNodeSize);
+            Write((root), idxNodeSize);
+            fflush(Fileio);
         }
     }
     ~database(){
-        Fileio.seekp(0, ios::beg);
-        Fileio.write(reinterpret_cast<char *>(&curSize), sizeof(int));
-        Fileio.write(reinterpret_cast<char *>(&_offset), sizeof(int));
+        SeekFromBeg(0);
+        Write((&curSize), sizeof(int));
+        Write((&_offset), sizeof(int));
         //File.write(reinterpret_cast<char *>(leftHead), dataNodeSize);   //no use
-        Fileio.seekp(sizeof(int) * 2 + dataNodeSize, std::ios::beg);
-        Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
-        Fileio.flush();
+        SeekFromBeg(sizeof(int) * 2 + dataNodeSize);
+        Write((root), idxNodeSize);
+        fflush(Fileio);
         delete root;
         delete leftHead;
-        Fileio.close();
+        fclose(Fileio);
     }
 
 public:
@@ -134,18 +156,19 @@ public:
         _offset = 2 * sizeof(int) + dataNodeSize + idxNodeSize;
         curSize=0;
 
-        if(Fileio.is_open())
-            Fileio.close();
-        Fileio.open(Filename, ios::out);
-        Fileio.close();
+        if(Fileio!= nullptr )
+            fclose(Fileio);
 
-        Fileio.open(Filename,ios::binary | ios::ate | ios::out | ios::in);
-        Fileio.seekp(0, ios::beg);
-        Fileio.write(reinterpret_cast<char *>(&curSize), sizeof(int));
-        Fileio.write(reinterpret_cast<char *>(&_offset), sizeof(int));
-        Fileio.write(reinterpret_cast<char *>(leftHead), dataNodeSize);
-        Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
-        Fileio.flush();
+        Fileio=fopen(Filename.c_str(), "wb");
+        fclose(Fileio);
+
+        Fileio=fopen(Filename.c_str(),"rb+");
+        SeekFromBeg(0);
+        Write((&curSize), sizeof(int));
+        Write((&_offset), sizeof(int));
+        Write((leftHead), dataNodeSize);
+        Write((root), idxNodeSize);
+        fflush(Fileio);
     }
 
 public:
@@ -169,8 +192,8 @@ public:
                 if (node.nextoffset == -1) {
                     pos = -1;
                 } else {
-                    tree_ptr->Fileio.seekg(node.nextoffset, ios::beg);
-                    tree_ptr->Fileio.read(reinterpret_cast<char *>(&node), tree_ptr->dataNodeSize);
+                    tree_ptr->SeekFromBeg(node.nextoffset);
+                    tree_ptr->Read((&node), tree_ptr->dataNodeSize);
                     pos = 0;
                 }
             }
@@ -183,8 +206,8 @@ public:
                 if (node.nextoffset == -1) {
                     pos = -1;
                 } else {
-                    tree_ptr->File.seekg(node.nextoffset, ios::beg);
-                    tree_ptr->File.read(reinterpret_cast<char *>(&node), tree_ptr->dataNodeSize);
+                    tree_ptr->SeekFromBeg(node.nextoffset);
+                    tree_ptr->Read((&node), tree_ptr->dataNodeSize);
                     pos = 0;
                 }
             }
@@ -220,15 +243,15 @@ public:
         for (i = 0; i < t.keyNum; i++) {
             if (k < t.key[i])	break;
         }
-        Fileio.seekg(t.offset[i], ios::beg);
+        SeekFromBeg(t.offset[i]);
         if (t.isLeaf) {
             dataNode p;
-            Fileio.read(reinterpret_cast<char *>(&p), dataNodeSize);
+            Read((&p), dataNodeSize);
             return dataSearch(k, p);
         }
         else {
             idxNode p;
-            Fileio.read(reinterpret_cast<char *>(&p), idxNodeSize);
+            Read((&p), idxNodeSize);
             return idxSearch(k, p);
         }
     }
@@ -251,14 +274,14 @@ public:
         int i;
         for (i = t.keyNum - 1; i >= 0 && (k < t.key[i]||isequal(k,t.key[i])); --i);
 
-        Fileio.seekg(t.offset[i + 1], ios::beg);
+        SeekFromBeg(t.offset[i + 1]);
         if (t.isLeaf) {
             dataNode p;
-            Fileio.read(reinterpret_cast<char *>(&p), dataNodeSize);
+            Read((&p), dataNodeSize);
             return Lower_bounddata(k, p);
         } else {
             idxNode p;
-            Fileio.read(reinterpret_cast<char *>(&p), idxNodeSize);
+            Read((&p), idxNodeSize);
             return Lower_boundidx(k, p);
         }
     }
@@ -289,30 +312,30 @@ public:
                 break;
 
         if (t->isLeaf) {
-            Fileio.seekg(t->offset[i], ios::beg);
+            SeekFromBeg(t->offset[i]);
             auto *p = new dataNode;
-            Fileio.read(reinterpret_cast<char *>(p), dataNodeSize);
+            Read((p), dataNodeSize);
             newNode = Insertdata(k, data, p);
 
             if (i == 0) t->miniKey = p->key[0];
             else t->key[i - 1] = p->key[0];
 
-            Fileio.seekp(t->offset[i], ios::beg);
-            Fileio.write(reinterpret_cast<char *>(p), dataNodeSize);
-            Fileio.flush();
+            SeekFromBeg(t->offset[i]);
+            Write((p), dataNodeSize);
+            save();
             delete p;
         }else{
-            Fileio.seekg(t->offset[i], ios::beg);
+            SeekFromBeg(t->offset[i]);
             auto *p = new idxNode;
-            Fileio.read(reinterpret_cast<char *>(p), idxNodeSize);
+            Read((p), idxNodeSize);
             newNode = Insertidx(k, data, p);
 
             if (i == 0) t->miniKey = p->miniKey;
             else t->key[i - 1] = p->miniKey;
 
-            Fileio.seekp(t->offset[i], ios::beg);
-            Fileio.write(reinterpret_cast<char *>(p), idxNodeSize);
-            Fileio.flush();
+            SeekFromBeg(t->offset[i]);
+            Write((p), idxNodeSize);
+            save();
             delete p;
         }
         if(newNode== nullptr) return nullptr;
@@ -343,8 +366,8 @@ public:
         curSize++;
         //complete the data here
 
-        Fileio.seekp(0, ios::beg);
-        Fileio.write(reinterpret_cast<char *>(&curSize), sizeof(int));
+        SeekFromBeg(0);
+        Write((&curSize), sizeof(int));
 //		Fileio.flush();
 
         if (t->keyNum <= maxKeyNum) return nullptr;
@@ -380,12 +403,12 @@ public:
         t->offset[i + 1] = _offset;
         t->keyNum++;
 
-        Fileio.seekp(_offset, ios::beg);
-        Fileio.write(reinterpret_cast<char *>(newNode), idxNodeSize);
+        SeekFromBeg(_offset);
+        Write((newNode), idxNodeSize);
 //			File.flush();
         _offset += idxNodeSize;  //update _offset
-        Fileio.seekp(sizeof(int), ios::beg);
-        Fileio.write(reinterpret_cast<char *>(&_offset), sizeof(int));
+        SeekFromBeg(sizeof(int));
+        Write((&_offset), sizeof(int));
 //			File.flush();
 
         if (t->keyNum <= maxKeyNum) {
@@ -425,11 +448,11 @@ public:
         t->offset[i + 1] = _offset;
         t->keyNum++;
 
-        Fileio.seekp(_offset, ios::beg);
-        Fileio.write(reinterpret_cast<char *>(newNode), dataNodeSize);
+        SeekFromBeg(_offset);
+        Write((newNode), dataNodeSize);
         _offset += dataNodeSize;
-        Fileio.seekp(sizeof(int), ios::beg);
-        Fileio.write(reinterpret_cast<char *>(&_offset), sizeof(int));
+        SeekFromBeg(sizeof(int));
+        Write((&_offset), sizeof(int));
 //			File.flush();
 
 
@@ -469,31 +492,31 @@ public:
                 break;
 
         if (!t->isLeaf) {
-            Fileio.seekg(t->offset[i], ios::beg);
+            SeekFromBeg(t->offset[i]);
             auto *p = new idxNode;
-            Fileio.read(reinterpret_cast<char *>(p), idxNodeSize);
+            Read((p), idxNodeSize);
             newNode = Eraseidx(k, p);
 
             if (i == 0) t->miniKey = p->miniKey;
             else t->key[i - 1] = p->miniKey;
 
-            Fileio.seekp(t->offset[i], ios::beg);
-            Fileio.write(reinterpret_cast<char *>(p), idxNodeSize);
+            SeekFromBeg(t->offset[i]);
+            Write((p), idxNodeSize);
             //Fileio.flush();
 
             delete p;
 
         } else {
-            Fileio.seekg(t->offset[i], ios::beg);
+            SeekFromBeg(t->offset[i]);
             auto *p = new dataNode;
-            Fileio.read(reinterpret_cast<char *>(p), dataNodeSize);
+            Read((p), dataNodeSize);
             newNode = Erasedata(k, p);
 
             if (i == 0) t->miniKey = p->key[0];
             else t->key[i - 1] = p->key[0];
 
-            Fileio.seekp(t->offset[i], ios::beg);
-            Fileio.write(reinterpret_cast<char *>(p), dataNodeSize);
+            SeekFromBeg(t->offset[i]);
+            Write((p), dataNodeSize);
             //Fileio.flush();
 
             delete p;
@@ -526,9 +549,9 @@ public:
         t->keyNum--;
         curSize--;
 
-        Fileio.seekp(0);
-        Fileio.write(reinterpret_cast<char *>(&curSize), sizeof(int));
-        Fileio.flush();
+        SeekFromBeg(0);
+        Write((&curSize), sizeof(int));
+        save();
 
         if (t->keyNum >= miniKeyNum)
             return nullptr;
@@ -550,8 +573,8 @@ public:
         if (i != t->keyNum) {
             // cout<<"Blockidx case1"<<endl;
             idxNode *next = new idxNode;
-            Fileio.seekg(t->offset[i + 1], ios::beg);
-            Fileio.read(reinterpret_cast<char *>(next), idxNodeSize);
+            SeekFromBeg(t->offset[i + 1]);
+            Read((next), idxNodeSize);
             if (next->keyNum > miniKeyNum) {
                 //borrow an element from next
                 n->key[n->keyNum] = next->miniKey;
@@ -568,11 +591,11 @@ public:
                 next->offset[j] = next->offset[j + 1];
                 t->key[i] = next->miniKey;
 
-                Fileio.seekg(t->offset[i], ios::beg);
-                Fileio.write(reinterpret_cast<char *>(n), idxNodeSize);
-                Fileio.seekp(t->offset[i + 1], ios::beg);
-                Fileio.write(reinterpret_cast<char *>(next), idxNodeSize);
-                Fileio.flush();
+                SeekFromBeg(t->offset[i]);
+                Write((n), idxNodeSize);
+                SeekFromBeg(t->offset[i + 1]);
+                Write((next), idxNodeSize);
+                save();
             }else{
                 //merge
                 n->key[n->keyNum] = next->miniKey;
@@ -594,9 +617,9 @@ public:
                 if(i == 0) t->miniKey = n->miniKey;
                 else t->key[i - 1] = n->miniKey;   //when i==0 it is a quite small problem
 
-                Fileio.seekp(t->offset[i], std::ios::beg);
-                Fileio.write(reinterpret_cast<char *>(n), idxNodeSize);
-                Fileio.flush();
+                SeekFromBeg(t->offset[i]);
+                Write((n), idxNodeSize);
+                save();
             }
 
             delete next;
@@ -604,8 +627,8 @@ public:
         }else if (i != 0){
             // cout<<"Blockidx case2"<<endl;
             idxNode *pre = new idxNode;
-            Fileio.seekg(t->offset[i - 1], ios::beg);
-            Fileio.read(reinterpret_cast<char *>(pre), idxNodeSize);
+            SeekFromBeg(t->offset[i - 1]);
+            Read((pre), idxNodeSize);
             if (pre->keyNum > miniKeyNum) {
                 //borrow an element from pre
                 n->offset[n->keyNum + 1] = n->offset[n->keyNum];
@@ -623,11 +646,11 @@ public:
                 n->miniKey = pre->key[pre->keyNum];
                 t->key[i - 1] = n->miniKey;
 
-                Fileio.seekg(t->offset[i - 1], ios::beg);
-                Fileio.write(reinterpret_cast<char *>(pre), idxNodeSize);
-                Fileio.seekp(t->offset[i], ios::beg);
-                Fileio.write(reinterpret_cast<char *>(n), idxNodeSize);
-                Fileio.flush();
+                SeekFromBeg(t->offset[i - 1]);
+                Write((pre), idxNodeSize);
+                SeekFromBeg(t->offset[i]);
+                Write((n), idxNodeSize);
+                save();
             }else {
                 //merge
                 pre->key[pre->keyNum] = n->miniKey;
@@ -646,9 +669,9 @@ public:
                     t->key[j] = t->key[j + 1];
                     t->offset[j + 1] = t->offset[j + 2];
                 }
-                Fileio.seekp(t->offset[i - 1], ios::beg);
-                Fileio.write(reinterpret_cast<char *>(pre), idxNodeSize);
-                Fileio.flush();
+                SeekFromBeg(t->offset[i - 1]);
+                Write((pre), idxNodeSize);
+                save();
             }
 
             delete pre;
@@ -676,8 +699,8 @@ public:
         if (i != t->keyNum) {
             // cout<<"Blockdata case1"<<endl;
             dataNode *next = new dataNode;
-            Fileio.seekg(t->offset[i + 1], ios::beg);
-            Fileio.read(reinterpret_cast<char *>(next), dataNodeSize);
+            SeekFromBeg(t->offset[i + 1]);
+            Read((next), dataNodeSize);
             if (next->keyNum > miniKeyNum) {
                 //borrow an element from next
                 n->key[n->keyNum] = next->key[0];
@@ -692,11 +715,11 @@ public:
                 t->key[i] = next->key[0];
                 //t->key[i - 1] = n->key[0];
                 //cout<<t->isLeaf<<endl;
-                Fileio.seekp(t->offset[i], ios::beg);
-                Fileio.write(reinterpret_cast<char *>(n), dataNodeSize);
-                Fileio.seekp(t->offset[i + 1], ios::beg);
-                Fileio.write(reinterpret_cast<char *>(next), dataNodeSize);
-                Fileio.flush();
+                SeekFromBeg(t->offset[i]);
+                Write((n), dataNodeSize);
+                SeekFromBeg(t->offset[i + 1]);
+                Write((next), dataNodeSize);
+                save();
             }else{
                 //merge
                 for (int j = 0; j < next->keyNum; j++) {
@@ -716,9 +739,9 @@ public:
                 }
                 //t->key[i - 1] = n->key[0];
 
-                Fileio.seekp(t->offset[i], ios::beg);
-                Fileio.write(reinterpret_cast<char *>(n), dataNodeSize);
-                Fileio.flush();
+                SeekFromBeg(t->offset[i]);
+                Write((n), dataNodeSize);
+                save();
             }
 
             delete next;
@@ -726,8 +749,8 @@ public:
         }else if (i != 0) {
             // cout<<"Blockdata case2"<<endl;
             dataNode *pre = new dataNode;
-            Fileio.seekg(t->offset[i - 1], ios::beg);
-            Fileio.read(reinterpret_cast<char *>(pre), dataNodeSize);
+            SeekFromBeg(t->offset[i - 1]);
+            Read((pre), dataNodeSize);
             if (pre->keyNum > miniKeyNum) {
                 //borrow an element from pre
 
@@ -743,11 +766,11 @@ public:
                 n->data[0] = pre->data[pre->keyNum];
                 t->key[i - 1] = n->key[0];
 
-                Fileio.seekp(t->offset[i - 1], ios::beg);
-                Fileio.write(reinterpret_cast<char *>(pre), dataNodeSize);
-                Fileio.seekp(t->offset[i], ios::beg);
-                Fileio.write(reinterpret_cast<char *>(n), dataNodeSize);
-                Fileio.flush();
+                SeekFromBeg(t->offset[i - 1]);
+                Write((pre), dataNodeSize);
+                SeekFromBeg(t->offset[i]);
+                Write((n), dataNodeSize);
+                save();
             }else {
                 //merge
                 for (int j = 0; j < n->keyNum; j++) {
@@ -764,9 +787,9 @@ public:
                     t->offset[j + 1] = t->offset[j + 2];
                 }
 
-                Fileio.seekp(t->offset[i - 1], ios::beg);
-                Fileio.write(reinterpret_cast<char *>(pre), dataNodeSize);
-                Fileio.flush();
+                SeekFromBeg(t->offset[i - 1]);
+                Write((pre), dataNodeSize);
+                save();
             }
 
             delete pre;
@@ -801,16 +824,16 @@ private:
         if (!t.isLeaf) {
             for (int i = 0; i <= t.keyNum; i++) {
                 idxNode p;
-                Fileio.seekg(t.offset[i]);
-                Fileio.read(reinterpret_cast<char *>(&p), idxNodeSize);
+                SeekFromBeg(t.offset[i]);
+                Read((&p), idxNodeSize);
                 Printidx(p);
             }
         }
         else {
             for (int i = 0; i <= t.keyNum; i++) {
                 dataNode p;
-                Fileio.seekg(t.offset[i]);
-                Fileio.read(reinterpret_cast<char *>(&p), dataNodeSize);
+                SeekFromBeg(t.offset[i]);
+                Read((&p), dataNodeSize);
                 printdata(p);
             }
         }
@@ -819,8 +842,8 @@ private:
 
     void putData(int offset) {
         dataNode t;
-        Fileio.seekg(offset);
-        Fileio.read(reinterpret_cast<char *>(&t), dataNodeSize);
+        SeekFromBeg(offset);
+        Read((&t), dataNodeSize);
         puts("[");
         printdata(t);
         puts("]");
@@ -828,8 +851,8 @@ private:
 
     void putidx(int offset) {
         idxNode t;
-        Fileio.seekg(offset);
-        Fileio.read(reinterpret_cast<char *>(&t), idxNodeSize);
+        SeekFromBeg(offset);
+        Read((&t), idxNodeSize);
         putchar('{');
         cout << endl;
         printidx(t);
@@ -906,15 +929,35 @@ public:
             leftHead->offset = 2 * sizeof(int);
             root->offset[0] = 2 * sizeof(int);
 
-            Fileio.seekp(2 * sizeof(int), ios::beg);
-            Fileio.write(reinterpret_cast<char *>(leftHead), dataNodeSize);
-            Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
+            SeekFromBeg(2 * sizeof(int));
+            Write((leftHead), dataNodeSize);
+            Write((root), idxNodeSize);
+            //fflush(Fileio);
+
+
+            /*
+            auto z=new dataNode;
+            SeekFromBeg(2 * sizeof(int));
+            Read(z,dataNodeSize);
+
+            auto z1=new idxNode;
+            SeekFromBeg(2 * sizeof(int)+dataNodeSize);
+            Read(z1,idxNodeSize);
+             */
 
             curSize++;
 
-            Fileio.seekp(0, ios::beg);
-            Fileio.write(reinterpret_cast<char *>(&curSize), sizeof(int));
-            Fileio.flush();
+            SeekFromBeg(0);
+            Write((&curSize), sizeof(int));
+            //save();
+
+            /*
+            auto z2=new int;
+            SeekFromBeg(0);
+            fread(z2,4,1,Fileio);
+            *z2=12312312;
+            * */
+
             return;
         }
 
@@ -929,19 +972,19 @@ public:
             root->key[0] = q->miniKey;  //fix it
             root->offset[0] = _offset;
             root->offset[1] = _offset + idxNodeSize;
-            Fileio.seekp(2 * sizeof(int) + dataNodeSize, ios::beg);
-            Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
-            Fileio.seekp(_offset, std::ios::beg);
-            Fileio.write(reinterpret_cast<char *>(t), idxNodeSize);
-            Fileio.write(reinterpret_cast<char *>(q), idxNodeSize);
+            SeekFromBeg(2 * sizeof(int) + dataNodeSize);
+            Write((root), idxNodeSize);
+            SeekFromBeg(_offset);
+            Write((t), idxNodeSize);
+            Write((q), idxNodeSize);
             _offset += 2 * idxNodeSize;
-            Fileio.seekp(sizeof(int), std::ios::beg);
-            Fileio.write(reinterpret_cast<char *>(&_offset), sizeof(int));
-            Fileio.flush();
+            SeekFromBeg(sizeof(int));
+            Write((&_offset), sizeof(int));
+            save();
             delete t;
             delete q;
         }
-        Fileio.flush();
+        save();
     }
 
     bool modify(const Key &k,const Value &data){
@@ -995,12 +1038,12 @@ public:
         if(r!= nullptr){
             if(r->keyNum!=0){
                 //change root
-                Fileio.seekg(root->offset[0], ios::beg);
-                Fileio.read(reinterpret_cast<char *>(root), idxNodeSize);
+                SeekFromBeg(root->offset[0]);
+                Read((root), idxNodeSize);
             }
-            Fileio.seekp(2 * sizeof(int) + dataNodeSize, ios::beg);
-            Fileio.write(reinterpret_cast<char *>(root), idxNodeSize);
-            Fileio.flush();
+            SeekFromBeg(2 * sizeof(int) + dataNodeSize);
+            Write((root), idxNodeSize);
+            save();
 
             //delete r is necessary
             //because r refers to a real space
@@ -1010,7 +1053,7 @@ public:
     }
 
     void save(){
-        Fileio.flush();
+        fflush(Fileio);
     }
 
 };
