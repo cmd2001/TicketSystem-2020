@@ -27,11 +27,11 @@ class Ticket {
 
     static const int username_SIZE = 22;
     static const int pswd_SIZE = 32;
-    static const int name_SIZE = 22;
+    static const int name_SIZE = 17; // 2-5个汉字
     static const int mailAddr_SIZE = 32;
-    static const int trainID_SIZE = 28;
-    static const int station_SIZE = 42;
-    static const int MAXstationNum = 102;
+    static const int trainID_SIZE = 22;
+    static const int station_SIZE = 32; // 10个汉字以内
+    static const int MAXstationNum = 101;
     static const int MAXseatNum = 100005;
 
 public:
@@ -152,6 +152,7 @@ public:
             return get_date() + " " + get_time();
         }
     };
+
     class type_user {
         friend std::ostream& operator << (std::ostream &os, const type_user &a) {
             os << a.userName << " " << a.name << " " << a.mailAddr << " " << a.privilege;
@@ -163,7 +164,7 @@ public:
     public:
         char userName[username_SIZE];
         char password[pswd_SIZE];
-        char name[name_SIZE]; // 2-5个汉字
+        char name[name_SIZE];
         char mailAddr[mailAddr_SIZE];
         int privilege; // 0-10
 
@@ -171,7 +172,7 @@ public:
         type_user() { privilege = 0; orderNum = 0; } // FIXME: memset 0?
     };
     typedef std::pair<bool, type_user> user_return;
-    typedef std::pair<bool, int> cur_return;
+    typedef std::pair<bool, char> cur_return;
 
     class type_train {
     private:
@@ -381,7 +382,7 @@ public:
     };
 
     database_cached<type_userName, type_user> Users;
-    database_cached<type_userName, int> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
+    database_cached<type_userName, char> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
     database_cached<type_trainID, type_train> Trains_base;
     database_cached<type_runtimeID, type_train_release> Trains_released;
     database_cached<type_userName_orderID, type_order> Database_orders;
