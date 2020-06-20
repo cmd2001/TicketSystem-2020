@@ -652,7 +652,8 @@ public:
         if(!cur_u.first || !that_u.first) return "-1";
         this_u = Users.query(cur_username);
         if(!this_u.first) throw unknown_wrong();
-        if(strcmp(this_u.second.userName, that_u.second.userName) != 0 && (this_u.second.privilege <= that_u.second.privilege || this_u.second.privilege <= newuser.privilege)) return "-1";
+        if(this_u.second.privilege <= newuser.privilege) return "-1";
+        if(strcmp(this_u.second.userName, that_u.second.userName) != 0 && this_u.second.privilege <= that_u.second.privilege) return "-1";
         // 可修改当且仅当this_u权限大于that.u，或this_u和that_u是一个人
 
         strcpy(newuser.userName, that_u.second.userName);
