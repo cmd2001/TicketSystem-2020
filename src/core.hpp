@@ -1024,7 +1024,7 @@ public:
 
                 for(int i = it_1.which_in_order + 1; i < t_1.stationNum; ++i) {
                     for(int j = it_2.which_in_order - 1; j >= 0; --j) {
-                        if(!(t_2.leaving[j].plusdate(startdate_2.date) > t_1.arriving[i].plusdate(startdate_1.date))) { out_of_bound = true; break; }
+                        if(t_2.leaving[j].plusdate(startdate_2.date) < t_1.arriving[i].plusdate(startdate_1.date)) { out_of_bound = true; break; }
                         if (strcmp(t_2.stations[j], t_1.stations[i]) == 0) {
                             have_legal_ones = true;
 
