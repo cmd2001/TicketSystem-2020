@@ -105,6 +105,9 @@ public:
         K &operator*() const {
             return (nowNode->value);
         }
+        K* operator -> () const {
+            return &(nowNode->value);
+        }
 
         const iterator operator++(int) {
             auto x = iterator(*this);

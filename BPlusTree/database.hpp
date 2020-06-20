@@ -19,7 +19,7 @@ template <typename Key,typename Value>
 class database{
 private:
     string Filename;
-    static const int maxKeyNum=128;
+    static const int maxKeyNum=32;
     static const int miniKeyNum=maxKeyNum/2;
     static const int MaxSize=maxKeyNum+2;
     FILE *Fileio= nullptr;
@@ -44,6 +44,7 @@ private:
         int offset,nextoffset,keyNum;
         dataNode(){
             keyNum=0;
+            offset = -1;
             nextoffset=-1;
         }
         dataNode(const dataNode &other) = default;

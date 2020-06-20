@@ -533,11 +533,12 @@ namespace mapA { // from https://github.com/battlin6/My_STLite/blob/master/mapA/
 }
 
 namespace __Amagi {
-    constexpr size_t max_Cache_Size = 50;
+    constexpr size_t default_Max_Cache_Size = 50;
 
     template <typename type_key,typename type_value>
     class database_cached {
     private:
+        const size_t max_Cache_Size;
         database<type_key, type_value> core;
         struct cache_Node {
             int type; // 0 for read, 1 for insert, 2 for modify, 3 for delete
@@ -607,9 +608,20 @@ namespace __Amagi {
             while(p2 != b.end()) ret.push_back((*p2).second), ++p2;
             return ret;
         }
+        List<pair<type_key, type_value> > merge_Sort2(List<pair<type_key, type_value> > &a, List<pair<type_key, type_value> > b) {
+            List<pair<type_key, type_value> > ret;
+            auto p1 = a.begin(), p2 = b.begin();
+            while(p1 != a.end() && p2 != b.end()) {
+                if((*p1).first < (*p2).first) ret.push_back(*p1++);
+                else ret.push_back(*p2++);
+            }
+            while(p1 != a.end()) ret.push_back(*p1++);
+            while(p2 != b.end()) ret.push_back(*p2++);
+            return ret;
+        }
     public:
-        string __name;
-        database_cached(const string &s): core(s), uid(0), __name(s) {cur_size = core.size();}
+        database_cached(const string &s, const size_t &_max_Cache_Size = default_Max_Cache_Size):
+            core(s), uid(0), max_Cache_Size(_max_Cache_Size) {cur_size = core.size();}
         void insert(const type_key &key, const type_value &value) {
             if(!max_Cache_Size) return core.insert(key, value); // defeat cache
             ++cur_size;
@@ -639,7 +651,6 @@ namespace __Amagi {
             }
         }
         List<type_value> range(const type_key &k1, const type_key &k2) {
-            // debug << "called range" << endl;
             if(!max_Cache_Size) return core.range(k1, k2);
             auto ref = core.range2(k1, k2);
             List<pair<type_key, type_value> > ret;
@@ -652,6 +663,20 @@ namespace __Amagi {
                 }
             }
             return merge_Sort(ret, cache_Range(k1, k2));
+        }
+        List<pair<type_key, type_value> > range2(const type_key &k1, const type_key &k2) {
+            if(!max_Cache_Size) return core.range2(k1, k2);
+            auto ref = core.range2(k1, k2);
+            List<pair<type_key, type_value> > ret;
+            for(auto x: ref) {
+                if(cache.find(x.first) == cache.end()) ret.push_back(x);
+                else {
+                    auto tp = cache[x.first];
+                    assert(tp.type != 1) ;
+                    if(tp.type != 3) ret.push_back(make_pair(x.first, tp.value));
+                }
+            }
+            return merge_Sort2(ret, cache_Range(k1, k2));
         }
         size_t size() {
             if(!max_Cache_Size) return core.size();
