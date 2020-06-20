@@ -44,6 +44,7 @@ private:
         int offset,nextoffset,keyNum;
         dataNode(){
             keyNum=0;
+            offset = -1;
             nextoffset=-1;
         }
         dataNode(const dataNode &other) = default;
