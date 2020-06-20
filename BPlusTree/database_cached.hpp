@@ -533,7 +533,7 @@ namespace mapA { // from https://github.com/battlin6/My_STLite/blob/master/mapA/
 }
 
 namespace __Amagi {
-    constexpr size_t max_Cache_Size = 50;
+    constexpr size_t max_Cache_Size = 30;
 
     template <typename type_key,typename type_value>
     class database_cached {
