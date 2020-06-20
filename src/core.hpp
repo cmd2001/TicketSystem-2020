@@ -119,6 +119,11 @@ public:
         inline bool operator<=(const datentime &o) const {
             return !(*this > o);
         }
+        inline datentime only_date() const {
+            datentime ans = *this;
+            ans.minu = 0;
+            return ans;
+        }
         inline string get_date() const {
             string ret;
             int data = date;
@@ -195,9 +200,26 @@ public:
     };
     typedef std::pair<bool, type_train> train_return;
 
+    class type_runtimeID {
+    public:
+        char trainID[trainID_SIZE];
+        datentime startDate;
+        type_runtimeID() = default;
+        type_runtimeID(const char *_id, const datentime &_sd): startDate(_sd) {
+            strcpy(trainID, _id);
+        }
+        bool operator<(const type_runtimeID &o) const {
+            int _ = strcmp(trainID, o.trainID);
+            return (_ == 0) ? startDate < o.startDate : _ < 0;
+        }
+        bool operator==(const type_runtimeID &o) const {
+            return strcmp(trainID, o.trainID) == 0 && startDate == o.startDate;
+        }
+    };
+
     class type_train_release {
     public:
-        char runtimeID[trainID_SIZE];
+        char trainID[trainID_SIZE];
         datentime startdate; //始发日期，仅在列车release之后有
         int seats[MAXstationNum]; // 每站的座位数
         int stationNum;
@@ -208,7 +230,7 @@ public:
             for(int i = 0; i < stationNum; ++i) seats[i] = _seatNum;
         }
         inline bool operator==(const type_train_release &o) const {
-            return strcmp(runtimeID, o.runtimeID) == 0;
+            return strcmp(trainID, o.trainID) == 0;
         }
 
         // TODO: 性能优化
@@ -226,38 +248,37 @@ public:
     };
     typedef std::pair<bool, type_train_release> release_return;
 
-    class type_stationName_startTime { // 包括列车runtimeID作为第三关键字（防止key值相同的情况发生）
+    class type_stationName_startTime { // 包括列车trainID作为第三关键字（防止key值相同的情况发生）
     public:
         char stationName[station_SIZE];
         datentime startTime;
-        char runtimeID[trainID_SIZE];
+        char trainID[trainID_SIZE];
         type_stationName_startTime() = default;
         type_stationName_startTime(const char *_n, const datentime &_t, const char *_runtimeid) {
             strcpy(stationName, _n);
             startTime = _t;
-            strcpy(runtimeID, _runtimeid);
+            strcpy(trainID, _runtimeid);
         }
         inline bool operator<(const type_stationName_startTime &o) const {
             int _ = strcmp(stationName, o.stationName);
-            return (_ == 0)? ((startTime == o.startTime)? strcmp(runtimeID, o.runtimeID) < 0 : startTime < o.startTime) : _ < 0;
+            return (_ == 0)? ((startTime == o.startTime)? strcmp(trainID, o.trainID) < 0 : startTime < o.startTime) : _ < 0;
         }
     };
 
     class type_query_value {
     public:
-        char runtimeID[trainID_SIZE];
+        type_runtimeID runtimeID;
         int which_in_order; // 车次中的第几站
         int stationNum;
         datentime arriving_time; // 包含起始时间
         datentime leaving_time;
         int pre_price;
         type_query_value() = default;
-        type_query_value(const char *_id, const int &_order, const int &_sta_num, const datentime &_arriving, const datentime &_leaving, const int &_pre_price):
-        which_in_order(_order), stationNum(_sta_num), arriving_time(_arriving), leaving_time(_leaving), pre_price(_pre_price) {
-            strcpy(runtimeID, _id);
+        type_query_value(const type_runtimeID &_runtimeid, const int &_order, const int &_sta_num, const datentime &_arriving, const datentime &_leaving, const int &_pre_price):
+        runtimeID(_runtimeid), which_in_order(_order), stationNum(_sta_num), arriving_time(_arriving), leaving_time(_leaving), pre_price(_pre_price) {
         }
         bool operator==(const type_query_value &o) const {
-            return strcmp(runtimeID, o.runtimeID) == 0 && which_in_order == o.which_in_order;
+            return runtimeID == o.runtimeID && which_in_order == o.which_in_order;
         }
     };
 
@@ -332,7 +353,7 @@ public:
         int totalID;
         Ordertype _type;
         char userName[username_SIZE];
-        char runtimeID[trainID_SIZE];
+        type_runtimeID runtimeID;
         char startS[station_SIZE], endS[station_SIZE];
         int startNum, endNum; // 在车次中的站号
         datentime leavingTime, arrivingTime;
@@ -340,7 +361,7 @@ public:
         int num;
         type_order() = default;
         inline bool operator==(const type_order &o) const {
-            return _type == o._type && strcmp(userName, o.userName) == 0 && strcmp(runtimeID, o.runtimeID) == 0
+            return _type == o._type && strcmp(userName, o.userName) == 0 && runtimeID == o.runtimeID
             && strcmp(startS, o.startS) == 0 && strcmp(endS, o.endS) == 0 && num == o.num;
         }
         inline string get() const {
@@ -350,7 +371,7 @@ public:
             case pending: ans = "[pending] "; break;
             case refunded: ans = "[refunded] "; break;
             }
-            ans += string(runtimeID).substr(0, strlen(runtimeID) - 6) + " " + startS + " " + leavingTime.get() + " -> " + endS + " " + arrivingTime.get() + " " + std::to_string(price) + " " + std::to_string(num);
+            ans += string(runtimeID.trainID) + " " + startS + " " + leavingTime.get() + " -> " + endS + " " + arrivingTime.get() + " " + std::to_string(price) + " " + std::to_string(num);
             return ans;
         }
     };
@@ -358,15 +379,13 @@ public:
 
     class type_queue_key { // 候补队列数据库的key，含列车的runtimeID和order的totalID
     public:
-        char runtimeID[trainID_SIZE];
+        type_runtimeID runtimeID;
         int totalID;
         type_queue_key() = default;
-        type_queue_key(const char *train_id, const int &total_id): totalID(total_id) {
-            strcpy(runtimeID, train_id);
-        }
+        type_queue_key(const type_runtimeID &_id, const int &total_id):
+        runtimeID(_id), totalID(total_id) {}
         inline bool operator<(const type_queue_key &o) const {
-            int ans = strcmp(runtimeID, o.runtimeID);
-            return (ans == 0)? totalID < o.totalID : ans < 0;
+            return (runtimeID == o.runtimeID)? totalID < o.totalID : runtimeID < o.runtimeID;
         }
     };
 
@@ -398,7 +417,7 @@ public:
     database_cached<type_userName, type_user> Users;
     database_cached<type_userName, int> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
     database_cached<type_trainID, type_train> Trains_base;
-    database_cached<type_trainID, type_train_release> Trains_released;
+    database_cached<type_runtimeID, type_train_release> Trains_released;
     database_cached<type_stationName_startTime, type_query_value> Database_stations; // 按车站和出发时间记录车次和该站编号
     database_cached<type_userName_orderID, type_order> Database_orders;
     database_cached<type_queue_key, type_userName_orderID> Database_queue; // 候补队列，value为order_key和totalID
@@ -434,8 +453,13 @@ public:
     }
 
 private:
-    inline type_train_release get_release(const string &str) { // 获取train_release信息
-        release_return this_t_release = Trains_released.query(str);
+    inline type_train_release get_release(const char *str, const datentime &dt) { // 获取train_release信息
+        release_return this_t_release = Trains_released.query(type_runtimeID(str, dt));
+        if(!this_t_release.first) throw unknown_wrong();
+        return this_t_release.second;
+    }
+    inline type_train_release get_release(const type_runtimeID &runtimeid) { // 获取train_release信息
+        release_return this_t_release = Trains_released.query(runtimeid);
         if(!this_t_release.first) throw unknown_wrong();
         return this_t_release.second;
     }
@@ -791,19 +815,18 @@ public:
         t.is_released = 1;
         Trains_base.modify(trainID, t); // modify Train_base, is_released = 1
 
-        string runtimeID; // 后置数字后列入Trains_released(例如：trainA#06-20)
         datentime everyday_starttime = t.saleDate[0];
         type_train_release t_release(t.stationNum, t.seatNum);
         for(int i = 0; i <= t.saleDate[1].date - t.saleDate[0].date; ++i) {
+            auto runtimeID = type_runtimeID(t.trainID, everyday_starttime);
             t_release.startdate = everyday_starttime;
-            runtimeID = (string)t.trainID + "#" + t_release.startdate.get_date();
-            strcpy(t_release.runtimeID, runtimeID.c_str());
+            strcpy(t_release.trainID, t.trainID);
             Trains_released.insert(runtimeID, t_release);
 
             for(int j = 0; j < t.stationNum; ++j) { // 按车站和出发时间（含天）列入Database_stations
 //                cout << t.stations[j] << " " << t.arriving[j].plusdate(everyday_starttime.date).get() << t.leaving[j].plusdate(everyday_starttime.date).get() << " " << t_release.runtimeID << " " << j << endl;
-                Database_stations.insert(type_stationName_startTime(t.stations[j], t.leaving[j].plusdate(everyday_starttime.date), t_release.runtimeID),
-                        type_query_value(t_release.runtimeID, j, t.stationNum, t.arriving[j].plusdate(everyday_starttime.date), t.leaving[j].plusdate(everyday_starttime.date), t.pre_prices[j]));
+                Database_stations.insert(type_stationName_startTime(t.stations[j], t.leaving[j].plusdate(everyday_starttime.date), t.trainID),
+                        type_query_value(runtimeID, j, t.stationNum, t.arriving[j].plusdate(everyday_starttime.date), t.leaving[j].plusdate(everyday_starttime.date), t.pre_prices[j]));
             }
             everyday_starttime.add_date(1);
 //            cout << runtimeID << endl;
@@ -846,7 +869,7 @@ public:
         release_return this_t_release;
         if(!t.is_released) this_t_release.second = type_train_release(t.stationNum, t.seatNum);
         else {
-            this_t_release = Trains_released.query(trainID + "#" + query_date.get_date());
+            this_t_release = Trains_released.query(type_runtimeID(trainID.c_str(), query_date));
             if(!this_t_release.first) throw unknown_wrong();
         }
         // cout << this_t.second.saleDate[0].get() << " " << this_t.second.saleDate[1].get() << endl;
@@ -937,7 +960,7 @@ public:
                     auto sd0 = p1->second.saledate[0], sd1 = p1->second.saledate[1];
                     auto firstDay = date.minusdate(p1->second.leaving.date);
                     if(sd0 <= firstDay && firstDay <= sd1) {
-                        auto t_release = get_release(string(p1->first.trainID) + "#" + firstDay.get_date());
+                        auto t_release = get_release(p1->first.trainID, firstDay.only_date());
                         auto seats = t_release.queryseats(p1->second.stationRank, p2->second.stationRank);
                         auto price = p2->second.sumPrice - p1->second.sumPrice;
                         auto out = string(p1->first.trainID) + " " + startS + " " +
@@ -1003,16 +1026,16 @@ public:
         type_train_transfer_tnc choosed_transfer;
         for(auto & it_1 : st) {
 //            trainID_set.clear();
-            datentime startdate_1("", string(it_1.runtimeID).substr(strlen(it_1.runtimeID) - 5, 5));
-            string trainID_1 = string(it_1.runtimeID).substr(0, strlen(it_1.runtimeID) - 6);
+            datentime startdate_1 = it_1.runtimeID.startDate;
+            string trainID_1 = it_1.runtimeID.trainID;
 
             auto first_t = Trains_base.query(trainID_1); // 取出车次名（不带日期）
             if(!first_t.first) throw unknown_wrong();
             const type_train &t_1 = first_t.second;
 
             for(auto & it_2 : et) {
-                datentime startdate_2("", string(it_2.runtimeID).substr(strlen(it_2.runtimeID) - 5, 5));
-                string trainID_2 = string(it_2.runtimeID).substr(0, strlen(it_2.runtimeID) - 6);
+                datentime startdate_2 = it_2.runtimeID.startDate;
+                string trainID_2 = it_2.runtimeID.trainID;
                 if(trainID_2 == trainID_1) continue;
 
                 auto second_t = Trains_base.query(trainID_2);
@@ -1152,14 +1175,13 @@ public:
         datentime startdate = datentime("", query_date.minusdate(leavingtime_from_startS.date).get_date()); // 发车日期
         // cout << startdate.get() << endl;
 
-        string ID_with_date = (string)t.trainID + "#" + startdate.get_date();
-        strcpy(o.runtimeID, ID_with_date.c_str());
+        o.runtimeID = type_runtimeID(t.trainID, startdate);
         o.startNum = p; o.endNum = q;
         o.price = t.pre_prices[q] - t.pre_prices[p];
         o.leavingTime = t.leaving[p].plusdate(startdate.date);
         o.arrivingTime = t.arriving[q].plusdate(startdate.date);
 
-        type_train_release t_release = get_release(ID_with_date);
+        type_train_release t_release = get_release(o.runtimeID);
         int seats_available = t_release.queryseats(p, q);
         if(seats_available < o.num) {
             if(flag && o.num <= t.seatNum) { // -q为true且票数不大于总座位数时加入候补队列
@@ -1173,7 +1195,7 @@ public:
                 Database_orders.insert(neworder_key, o); // 添加Database_orders
                 Users.modify(this_u.second.userName, u); // 更新该用户的orderNum
 
-                Database_queue.insert(type_queue_key(ID_with_date.c_str(), totalID_runtime), neworder_key); // 进入queue
+                Database_queue.insert(type_queue_key(o.runtimeID, totalID_runtime), neworder_key); // 进入queue
                 ans = "queue";
             } else return "-1";
         } else { // 购票成功
@@ -1188,7 +1210,7 @@ public:
             Database_orders.insert(neworder_key, o); // 添加Database_orders
             Users.modify(this_u.second.userName, u); // 更新该用户的orderNum
             t_release.buy(p, q, o.num); // 改变座位数
-            Trains_released.modify(ID_with_date, t_release); // 更新该车次的信息
+            Trains_released.modify(o.runtimeID, t_release); // 更新该车次的信息
 
             ans = std::to_string(total_cost);
         }
