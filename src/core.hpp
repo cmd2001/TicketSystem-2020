@@ -398,10 +398,10 @@ public:
     Ticket():
         Users("file_users", 10),
         Cur_users("file_cur_users", 10),
-        Trains_base("file_trains_base", 70), Trains_released("file_trains_released", 70),
+        Trains_base("file_trains_base", 100), Trains_released("file_trains_released", 100),
         Database_orders("file_orders", 20),
         Database_queue("file_queue", 10),
-        Database_query("file_query", 50) {
+        Database_query("file_query", 100) {
         // 读取总orderID
         ifstream totalID_in;
         totalID_in.open("file_totalID", ios::in);
