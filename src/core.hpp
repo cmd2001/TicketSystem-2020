@@ -27,11 +27,11 @@ class Ticket {
 
     static const int username_SIZE = 22;
     static const int pswd_SIZE = 32;
-    static const int name_SIZE = 22;
+    static const int name_SIZE = 17; // 2-5个汉字
     static const int mailAddr_SIZE = 32;
-    static const int trainID_SIZE = 28;
-    static const int station_SIZE = 42;
-    static const int MAXstationNum = 102;
+    static const int trainID_SIZE = 22;
+    static const int station_SIZE = 32; // 10个汉字以内
+    static const int MAXstationNum = 101;
     static const int MAXseatNum = 100005;
 
 public:
@@ -152,6 +152,7 @@ public:
             return get_date() + " " + get_time();
         }
     };
+
     class type_user {
         friend std::ostream& operator << (std::ostream &os, const type_user &a) {
             os << a.userName << " " << a.name << " " << a.mailAddr << " " << a.privilege;
@@ -163,7 +164,7 @@ public:
     public:
         char userName[username_SIZE];
         char password[pswd_SIZE];
-        char name[name_SIZE]; // 2-5个汉字
+        char name[name_SIZE];
         char mailAddr[mailAddr_SIZE];
         int privilege; // 0-10
 
@@ -171,7 +172,7 @@ public:
         type_user() { privilege = 0; orderNum = 0; } // FIXME: memset 0?
     };
     typedef std::pair<bool, type_user> user_return;
-    typedef std::pair<bool, int> cur_return;
+    typedef std::pair<bool, char> cur_return;
 
     class type_train {
     private:
@@ -181,7 +182,6 @@ public:
         char stations[MAXstationNum][station_SIZE]; // 10个汉字以内
         int pre_prices[MAXstationNum]; //票价前缀和
         int seatNum = 0;    // 0-100000
-        datentime startTime;
         datentime arriving[MAXstationNum]; // 前缀和 但不包含startdate
         datentime leaving[MAXstationNum];  // 前缀和 但不包含startdate
         datentime saleDate[2];
@@ -374,21 +374,21 @@ public:
         datentime saledate[2], arriving, leaving;
         int stationRank, pre_price;
         type_ticket_value() = default;
-        type_ticket_value(const datentime& startTime, const datentime& endTime, const datentime &_arriving, const datentime &_leaving,
+        type_ticket_value(const datentime& _startTime, const datentime& _endTime, const datentime &_arriving, const datentime &_leaving,
                           const int &_stationRank, const int &_sumPrice): arriving(_arriving), leaving(_leaving), stationRank(_stationRank), pre_price(_sumPrice) {
-            saledate[0] = startTime, saledate[1] = endTime;
+            saledate[0] = _startTime, saledate[1] = _endTime;
         }
     };
 
     database_cached<type_userName, type_user> Users;
-    database_cached<type_userName, int> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
+    database_cached<type_userName, char> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
     database_cached<type_trainID, type_train> Trains_base;
     database_cached<type_runtimeID, type_train_release> Trains_released;
+    database_cached<type_stationName_trainID, type_ticket_value> Database_query; // 查票数据库
     database_cached<type_userName_orderID, type_order> Database_orders;
     database_cached<type_queue_key, type_userName_orderID> Database_queue; // 候补队列，value为order_key和totalID
     int totalID_runtime; // 运行时的总orderID，在退出时写入文件file_totalID
 
-    database_cached<type_stationName_trainID, type_ticket_value> Database_query;
 
 private:
     char MAXID[trainID_SIZE], MINID[trainID_SIZE];
@@ -439,56 +439,34 @@ public:
 
     string add_user(const string* cmd, const int &siz) {
         int i = 1;
-        bool vis[6] = {0};
         type_user newuser;
         cur_return cur_u;
         string username;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-c") {
-                if(!vis[0]) {
-                    vis[0] = 1;
-                    username = cmd[++i];
-                    cur_u = Cur_users.query(type_userName(username));
-                } else throw illegal_arg();
+                username = cmd[++i];
+                cur_u = Cur_users.query(type_userName(username));
             } else if(cmd[i] == "-u") {
-                if(!vis[1]) {
-                    vis[1] = 1;
-                    strcpy(newuser.userName, cmd[++i].c_str());
-                } else throw illegal_arg();
+                strcpy(newuser.userName, cmd[++i].c_str());
             } else if(cmd[i] == "-p") {
-                if(!vis[2]) {
-                    vis[2] = 1;
-                    strcpy(newuser.password, cmd[++i].c_str());
-                } else throw illegal_arg();
+                strcpy(newuser.password, cmd[++i].c_str());
             } else if(cmd[i] == "-n") {
-                if(!vis[3]) {
-                    vis[3] = 1;
-                    strcpy(newuser.name, cmd[++i].c_str());
-                } else throw illegal_arg();
+                strcpy(newuser.name, cmd[++i].c_str());
             } else if(cmd[i] == "-m") {
-                if(!vis[4]) {
-                    vis[4] = 1;
-                    strcpy(newuser.mailAddr, cmd[++i].c_str());
-                } else throw illegal_arg();
+                strcpy(newuser.mailAddr, cmd[++i].c_str());
             } else if(cmd[i] == "-g") {
-                if(!vis[5]) {
-                    vis[5] = 1;
-                    int tmp = 0;
-                    ++i;
-                    for(int j = 0; j < cmd[i].size(); ++j) tmp = tmp * 10 + cmd[i][j] - '0';
-                    if(tmp >= 0 && tmp <= 10) newuser.privilege = tmp;
-                    else throw bad_para();
-                }
-            } else throw illegal_arg();
+                int tmp = 0;
+                ++i;
+                for(int j = 0; j < cmd[i].size(); ++j) tmp = tmp * 10 + cmd[i][j] - '0';
+                if(tmp >= 0 && tmp <= 10) newuser.privilege = tmp;
+                else throw bad_para();
+            }
             ++i;
         }
-        for(int i = 1; i < 5; ++i) if(!vis[i]) throw illegal_arg();
         if(Users.empty()) { // First user
             newuser.privilege = 10;
             // cout << "First user!" << endl;
         } else {
-            if(!vis[0] || !vis[5]) throw illegal_arg();
             if(!cur_u.first) return "-1";
             user_return this_u = Users.query(type_userName(username));
             if(!this_u.first) throw unknown_wrong();
@@ -502,28 +480,19 @@ public:
 
     string login(const string* cmd, const int &siz) {
         int i = 1;
-        bool vis[2] = {0};
         cur_return cur_u;
         user_return this_u;
         string username;
         string given_pswd;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-u") {
-                if(!vis[0]) {
-                    vis[0] = 1;
-                    username = cmd[++i];
-                    this_u = Users.query(username);
-                } else throw illegal_arg();
+                username = cmd[++i];
+                this_u = Users.query(username);
             } else if(cmd[i] == "-p") {
-                if(!vis[1]) {
-                    vis[1] = 1;
-                    given_pswd = cmd[++i];
-                } else throw illegal_arg();
-            } else throw illegal_arg();
+                given_pswd = cmd[++i];
+            }
             ++i;
         }
-        for(int i = 0; i < 2; ++i) if(!vis[i]) throw illegal_arg();
         if(!this_u.first) return "-1";
         if(given_pswd != this_u.second.password) return "-1";
         cur_u = Cur_users.query(username);
@@ -535,21 +504,15 @@ public:
 
     string logout(const string* cmd, const int &siz) {
         int i = 1;
-        bool vis = 0;
         cur_return in_cur;
         string username;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-u") {
-                if(!vis) {
-                    vis = 1;
-                    username = cmd[++i];
-                    in_cur = Cur_users.query(username);
-                }
-            } else throw illegal_arg();
+                username = cmd[++i];
+                in_cur = Cur_users.query(username);
+            }
             ++i;
         }
-        if(!vis) throw illegal_arg();
         if(!in_cur.first) return "-1";
 
         Cur_users.erase(username);
@@ -559,27 +522,18 @@ public:
     string query_profile(const string* cmd, const int &siz) {
         string ans = "";
         int i = 1;
-        bool vis[2] = {0};
         cur_return cur_u;
         user_return this_u, that_u;
         string username;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-c") {
-                if(!vis[0]) {
-                    vis[0] = 1;
-                    username = cmd[++i];
-                    cur_u = Cur_users.query(username);
-                } else throw illegal_arg();
+                username = cmd[++i];
+                cur_u = Cur_users.query(username);
             } else if(cmd[i] == "-u") {
-                if(!vis[1]) {
-                    vis[1] = 1;
-                    that_u = Users.query(cmd[++i]);
-                } else throw illegal_arg();
-            } else throw illegal_arg();
+                that_u = Users.query(cmd[++i]);
+            }
             ++i;
         }
-        for(int i = 0; i < 2; ++i) if(!vis[i]) throw illegal_arg();
         if(!cur_u.first || !that_u.first) return "-1";
         this_u = Users.query(username);
         if(strcmp(this_u.second.userName, that_u.second.userName) != 0 && this_u.second.privilege <= that_u.second.privilege) return "-1";
@@ -597,33 +551,32 @@ public:
         user_return this_u, that_u;
         type_user newuser;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-c") {
                 if(!vis[0]) {
                     vis[0] = 1;
                     cur_username = cmd[++i];
                     cur_u = Cur_users.query(cur_username);
-                } else throw illegal_arg();
+                }
             } else if(cmd[i] == "-u") {
                 if(!vis[1]) {
                     vis[1] = 1;
                     that_u = Users.query(cmd[++i]);
-                } else throw illegal_arg();
+                }
             } else if(cmd[i] == "-p") {
                 if(!vis[2]) {
                     vis[2] = 1;
                     strcpy(newuser.password, cmd[++i].c_str());
-                } else throw illegal_arg();
+                }
             } else if(cmd[i] == "-n") {
                 if(!vis[3]) {
                     vis[3] = 1;
                     strcpy(newuser.name, cmd[++i].c_str());
-                } else throw illegal_arg();
+                }
             } else if(cmd[i] == "-m") {
                 if(!vis[4]) {
                     vis[4] = 1;
                     strcpy(newuser.mailAddr, cmd[++i].c_str());
-                } else throw illegal_arg();
+                }
             } else if(cmd[i] == "-g") {
                 if(!vis[5]) {
                     vis[5] = 1;
@@ -633,10 +586,9 @@ public:
                     if(tmp >= 0 && tmp <= 10) newuser.privilege = tmp;
                     else throw bad_para();
                 }
-            } else throw illegal_arg();
+            }
             ++i;
         }
-        for(int i = 0; i < 2; ++i) if(!vis[i]) throw illegal_arg();
         if(!cur_u.first || !that_u.first) return "-1";
         this_u = Users.query(cur_username);
         if(!this_u.first) throw unknown_wrong();
@@ -661,91 +613,59 @@ public:
 
     string add_train(const string* cmd, const int &siz) {
         int i = 1;
-        bool vis[10] = {0};
         type_train newtrain;
+        datentime startTime;
         int travelTimes[MAXstationNum] = {0}, stopoverTimes[MAXstationNum] = {0};
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-i") {
-                if(!vis[0]) {
-                    vis[0] = 1;
-                    strcpy(newtrain.trainID, cmd[++i].c_str());
-                } else throw illegal_arg();
+                strcpy(newtrain.trainID, cmd[++i].c_str());
             } else if(cmd[i] == "-n") {
-                if(!vis[1]) {
-                    vis[1] = 1;
-                    newtrain.stationNum = atoi(cmd[++i].c_str());
-                    if(newtrain.stationNum >= 100 || newtrain.stationNum < 0) throw bad_para();
-                } else throw illegal_arg();
+                newtrain.stationNum = atoi(cmd[++i].c_str());
+                if(newtrain.stationNum >= 100 || newtrain.stationNum < 0) throw bad_para();
             } else if(cmd[i] == "-m") {
-                if(!vis[2]) {
-                    vis[2] = 1;
-                    newtrain.seatNum = atoi(cmd[++i].c_str());
-                } else throw illegal_arg();
+                newtrain.seatNum = atoi(cmd[++i].c_str());
             } else if(cmd[i] == "-s") {
-                if(!vis[3]) {
-                    vis[3] = 1;
-                    int _siz = 0;
-                    string tmp[MAXstationNum];
-                    split(cmd[++i], tmp, _siz, '|');
-                    for(int k = 0; k < _siz; ++k) {
-                        strcpy(newtrain.stations[k], tmp[k].c_str());
-                    }
-                } else throw illegal_arg();
+                int _siz = 0;
+                string tmp[MAXstationNum];
+                split(cmd[++i], tmp, _siz, '|');
+                for(int k = 0; k < _siz; ++k) {
+                    strcpy(newtrain.stations[k], tmp[k].c_str());
+                }
             } else if(cmd[i] == "-p") {
-                if(!vis[4]) {
-                    vis[4] = 1;
-                    int _siz = 0;
-                    string tmp[MAXstationNum];
-                    split(cmd[++i], tmp, _siz, '|');
-                    newtrain.pre_prices[0] = 0;
-                    for(int k = 0; k < _siz; ++k) newtrain.pre_prices[k + 1] = newtrain.pre_prices[k] + atoi(tmp[k].c_str());
-                } else throw illegal_arg();
+                int _siz = 0;
+                string tmp[MAXstationNum];
+                split(cmd[++i], tmp, _siz, '|');
+                newtrain.pre_prices[0] = 0;
+                for(int k = 0; k < _siz; ++k) newtrain.pre_prices[k + 1] = newtrain.pre_prices[k] + atoi(tmp[k].c_str());
             } else if(cmd[i] == "-x") {
-                if(!vis[5]) {
-                    vis[5] = 1;
-                    newtrain.startTime = datentime(cmd[++i]);
-                } else throw illegal_arg();
+                startTime = datentime(cmd[++i]);
             } else if(cmd[i] == "-t") {
-                if(!vis[6]) {
-                    vis[6] = 1;
-                    int _siz = 0;
-                    string tmp[MAXstationNum];
-                    split(cmd[++i], tmp, _siz, '|');
-                    for(int k = 0; k < _siz; ++k) travelTimes[k] = atoi(tmp[k].c_str());
-                } else throw illegal_arg();
+                int _siz = 0;
+                string tmp[MAXstationNum];
+                split(cmd[++i], tmp, _siz, '|');
+                for(int k = 0; k < _siz; ++k) travelTimes[k] = atoi(tmp[k].c_str());
             } else if(cmd[i] == "-o") {
-                if(!vis[7]) {
-                    vis[7] = 1;
-                    int _siz = 0;
-                    string tmp[MAXstationNum];
-                    stopoverTimes[0] = 0;
-                    if(cmd[++i] != "_") { // 特判仅两站
-                        split(cmd[i], tmp, _siz, '|');
-                        for(int k = 0; k < _siz; ++k) stopoverTimes[k + 1] = atoi(tmp[k].c_str());
-                    }
-                } else throw illegal_arg();
+                int _siz = 0;
+                string tmp[MAXstationNum];
+                stopoverTimes[0] = 0;
+                if(cmd[++i] != "_") { // 特判仅两站
+                    split(cmd[i], tmp, _siz, '|');
+                    for(int k = 0; k < _siz; ++k) stopoverTimes[k + 1] = atoi(tmp[k].c_str());
+                }
             } else if(cmd[i] == "-d") {
-                if(!vis[8]) {
-                    vis[8] = 1;
-                    int _siz = 0;
-                    string tmp[MAXstationNum];
-                    split(cmd[++i], tmp, _siz, '|');
-                    for(int k = 0; k < _siz; ++k) {
-                        newtrain.saleDate[k] = datentime("", tmp[k]);
-                    }
-                } else throw illegal_arg();
+                int _siz = 0;
+                string tmp[MAXstationNum];
+                split(cmd[++i], tmp, _siz, '|');
+                for(int k = 0; k < _siz; ++k) {
+                    newtrain.saleDate[k] = datentime("", tmp[k]);
+                }
             } else if(cmd[i] == "-y") {
-                if(!vis[9]) {
-                    vis[9] = 1;
-                    newtrain.type = cmd[++i][0];
-                } else throw illegal_arg();
-            } else throw illegal_arg();
+                newtrain.type = cmd[++i][0];
+            }
             ++i;
         }
-        for(int i = 0; i < 10; ++i) if(!vis[i]) throw illegal_arg();
         if(Trains_base.query(newtrain.trainID).first) return "-1"; // 已用的ID，操作失败
-        newtrain.arriving[0] = newtrain.leaving[0] = newtrain.startTime;
+        newtrain.arriving[0] = newtrain.leaving[0] = startTime;
         for(int i = 1; i < newtrain.stationNum; ++i) {
             newtrain.arriving[i] = newtrain.leaving[i - 1] + travelTimes[i - 1];
             newtrain.leaving[i] = newtrain.arriving[i] + stopoverTimes[i];
@@ -759,17 +679,13 @@ public:
 
     // 添加Train_released，更改Train_base中该车次的is_released为true，并添加Database_stations
     string release_train(const string* cmd, const int &siz) {
-        int i = 1; bool vis = 0;
+        int i = 1;
         string trainID;
         train_return this_t;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-i") {
-                if(!vis) {
-                    vis = 1;
-                    trainID = cmd[++i];
-                } else throw illegal_arg();
-            } else throw illegal_arg();
+                trainID = cmd[++i];
+            }
             ++i;
         }
         this_t = Trains_base.query(trainID);
@@ -800,23 +716,16 @@ public:
 
     string query_train(const string* cmd, const int &siz) {
         string ans = "";
-        int i = 1; bool vis[2] = {0};
+        int i = 1;
         string trainID;
         datentime query_date;
         train_return this_t;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-i") {
-                if(!vis[0]) {
-                    vis[0] = 1;
-                    trainID = cmd[++i];
-                } else throw illegal_arg();
+                trainID = cmd[++i];
             } else if(cmd[i] == "-d") {
-                if(!vis[1]) {
-                    vis[1] = 1;
-                    query_date = datentime("", cmd[++i]);
-                } else throw illegal_arg();
-            } else throw illegal_arg();
+                query_date = datentime("", cmd[++i]);
+            }
             ++i;
         }
         this_t = Trains_base.query(trainID);
@@ -847,17 +756,13 @@ public:
     }
 
     string delete_train(const string* cmd, const int &siz) {
-        int i = 1; bool vis = 0;
+        int i = 1;
         string trainID;
         train_return this_t;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-i") {
-                if(!vis) {
-                    vis = 1;
-                    trainID = cmd[++i];
-                } else throw illegal_arg();
-            } else throw illegal_arg();
+                trainID = cmd[++i];
+            }
             ++i;
         }
         this_t = Trains_base.query(trainID);
@@ -868,37 +773,23 @@ public:
 
     string query_ticket(const string* cmd, const int &siz) {
         string ans = "";
-        int i = 1; bool vis[4] = {0};
+        int i = 1;
         string startS, endS;
         datentime date;
         bool flag = 0;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-s") {
-                if(!vis[0]) {
-                    vis[0] = 1;
-                    startS = cmd[++i];
-                } else throw illegal_arg();
+                startS = cmd[++i];
             } else if(cmd[i] == "-t") {
-                if(!vis[1]) {
-                    vis[1] = 1;
-                    endS = cmd[++i];
-                } else throw illegal_arg();
+                endS = cmd[++i];
             } else if(cmd[i] == "-d") {
-                if(!vis[2]) {
-                    vis[2] = 1;
-                    date = datentime("", cmd[++i]);
-                } else throw illegal_arg();
+                date = datentime("", cmd[++i]);
             } else if(cmd[i] == "-p") {
-                if(!vis[3]) {
-                    vis[3] = 1;
-                    if(cmd[++i] == "cost") flag = 1;
-                    else flag = 0;
-                } else throw illegal_arg();
-            } else throw illegal_arg();
+                if(cmd[++i] == "cost") flag = 1;
+                else flag = 0;
+            }
             ++i;
         }
-        for(int i = 0; i < 3; ++i) if(!vis[i]) throw illegal_arg();
         if(startS == endS) return "0";
 
         auto st = Database_query.range2(type_stationName_trainID(startS.c_str(), MINID), type_stationName_trainID(startS.c_str(), MAXID));
@@ -943,37 +834,23 @@ public:
 
     string query_transfer(const string* cmd, const int &siz) {
         string ans = "";
-        int i = 1; bool vis[4] = {0};
+        int i = 1;
         string startS, endS;
         datentime date;
         bool flag = 0;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-s") {
-                if(!vis[0]) {
-                    vis[0] = 1;
-                    startS = cmd[++i];
-                } else throw illegal_arg();
+                startS = cmd[++i];
             } else if(cmd[i] == "-t") {
-                if(!vis[1]) {
-                    vis[1] = 1;
-                    endS = cmd[++i];
-                } else throw illegal_arg();
+                endS = cmd[++i];
             } else if(cmd[i] == "-d") {
-                if(!vis[2]) {
-                    vis[2] = 1;
-                    date = datentime("", cmd[++i]);
-                } else throw illegal_arg();
+                date = datentime("", cmd[++i]);
             } else if(cmd[i] == "-p") {
-                if(!vis[3]) {
-                    vis[3] = 1;
-                    if(cmd[++i] == "cost") flag = 1;
-                    else flag = 0;
-                } else throw illegal_arg();
-            } else throw illegal_arg();
+                if(cmd[++i] == "cost") flag = 1;
+                else flag = 0;
+            }
             ++i;
         }
-        for(int i = 0; i < 3; ++i) if(!vis[i]) throw illegal_arg();
         if(startS == endS) return "0";
         // st查询起始站对应有哪些车次，ed查询终点站对应有哪些车次
         // 思路：枚举st车次经过的站点，再range出过这个站点的车次，与ed中的比较（双指针扫一下）对应且符合时间先后则可行
@@ -1048,7 +925,8 @@ public:
 
     string buy_ticket(const string* cmd, const int &siz) {
         string ans = "";
-        int i = 1; bool vis[7] = {0}, flag = 0;
+        int i = 1;
+        bool flag = 0;
         type_order o;
         string trainID;
         datentime query_date;
@@ -1057,45 +935,23 @@ public:
         while(i < siz) {
             if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-u") {
-                if(!vis[0]) {
-                    vis[0] = 1;
-                    strcpy(o.userName, cmd[++i].c_str());
-                    cur_u = Cur_users.query(o.userName);
-                } else throw illegal_arg();
+                strcpy(o.userName, cmd[++i].c_str());
+                cur_u = Cur_users.query(o.userName);
             } else if(cmd[i] == "-i") {
-                if(!vis[1]) {
-                    vis[1] = 1;
-                    trainID = cmd[++i];
-                } else throw illegal_arg();
+                trainID = cmd[++i];
             } else if(cmd[i] == "-d") {
-                if(!vis[2]) {
-                    vis[2] = 1;
-                    query_date = datentime("", cmd[++i]);
-                } else throw illegal_arg();
+                query_date = datentime("", cmd[++i]);
             } else if(cmd[i] == "-n") {
-                if(!vis[3]) {
-                    vis[3] = 1;
-                    o.num = atoi(cmd[++i].c_str());
-                } else throw illegal_arg();
+                o.num = atoi(cmd[++i].c_str());
             } else if(cmd[i] == "-f") {
-                if(!vis[4]) {
-                    vis[4] = 1;
-                    strcpy(o.startS, cmd[++i].c_str());
-                } else throw illegal_arg();
+                strcpy(o.startS, cmd[++i].c_str());
             } else if(cmd[i] == "-t") {
-                if(!vis[5]) {
-                    vis[5] = 1;
-                    strcpy(o.endS, cmd[++i].c_str());
-                } else throw illegal_arg();
+                strcpy(o.endS, cmd[++i].c_str());
             } else if(cmd[i] == "-q") {
-                if(!vis[6]) {
-                    vis[6] = 1;
-                    if(cmd[++i] == "true") flag = 1;
-                } else throw illegal_arg();
-            } else throw illegal_arg();
+                if(cmd[++i] == "true") flag = 1;
+            }
             ++i;
         }
-        for(int i = 0; i < 6; ++i) if(!vis[i]) throw illegal_arg();
         if(!cur_u.first) return "-1";
         if(strcmp(o.startS, o.endS) == 0) return "-1";
         // cout << o.userName << endl;
@@ -1173,22 +1029,17 @@ public:
 
     string query_order(const string* cmd, const int &siz) {
         string ans = "";
-        int i = 1; bool vis = 0;
+        int i = 1;
         cur_return cur_u;
         user_return this_u;
         string username;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-u") {
-                if(!vis) {
-                    vis = 1;
-                    username = cmd[++i];
-                    cur_u = Cur_users.query(username);
-                }
-            } else throw illegal_arg();
+                username = cmd[++i];
+                cur_u = Cur_users.query(username);
+            }
             ++i;
         }
-        if(!vis) throw illegal_arg();
         if(!cur_u.first) return "-1";
         this_u = Users.query(username);
         if(!this_u.first) throw unknown_wrong();
@@ -1203,27 +1054,19 @@ public:
     }
 
     string refund_ticket(const string* cmd, const int &siz) {
-        int i = 1; bool vis[2] = {0};
+        int i = 1;
         string username;
         int which_order = 1;
         cur_return cur_u; user_return this_u;
         while(i < siz) {
-            if(i == siz - 1) throw illegal_arg();
             if(cmd[i] == "-u") {
-                if(!vis[0]) {
-                    vis[0] = 1;
-                    username = cmd[++i];
-                    cur_u = Cur_users.query(username);
-                } else throw illegal_arg();
+                username = cmd[++i];
+                cur_u = Cur_users.query(username);
             } else if(cmd[i] == "-n") {
-                if(!vis[1]) {
-                    vis[1] = 1;
-                    which_order = atoi(cmd[++i].c_str());
-                } else throw illegal_arg();
-            } else throw illegal_arg();
+                which_order = atoi(cmd[++i].c_str());
+            }
             ++i;
         }
-        if(!vis[0]) throw illegal_arg();
         if(!cur_u.first) return "-1";
         this_u = Users.query(username);
         if(!this_u.first) throw unknown_wrong();
