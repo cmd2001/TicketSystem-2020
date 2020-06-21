@@ -533,11 +533,12 @@ namespace mapA { // from https://github.com/battlin6/My_STLite/blob/master/mapA/
 }
 
 namespace __Amagi {
-    constexpr size_t max_Cache_Size = 30;
+    constexpr size_t default_Max_Cache_Size = 50;
 
     template <typename type_key,typename type_value>
     class database_cached {
     private:
+        const size_t max_Cache_Size;
         database<type_key, type_value> core;
         struct cache_Node {
             int type; // 0 for read, 1 for insert, 2 for modify, 3 for delete
@@ -619,8 +620,8 @@ namespace __Amagi {
             return ret;
         }
     public:
-        string __name;
-        database_cached(const string &s): core(s), uid(0), __name(s) {cur_size = core.size();}
+        database_cached(const string &s, const size_t &_max_Cache_Size = default_Max_Cache_Size):
+            core(s), uid(0), max_Cache_Size(_max_Cache_Size) {cur_size = core.size();}
         void insert(const type_key &key, const type_value &value) {
             if(!max_Cache_Size) return core.insert(key, value); // defeat cache
             ++cur_size;
