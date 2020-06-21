@@ -948,9 +948,9 @@ public:
     bool modify(const Key &k,const Value &data){
         //use function insert to realize it
         //you can see it in Line 326
-        if(!find(k))
+        /* if(!find(k))
             return false;
-        else
+        else */
             insert(k,data);
         return true;
     }
@@ -989,7 +989,7 @@ public:
     bool erase(const Key &k){
         //Print();
         if(root->keyNum==-1) return false;   //there is nothing in the file
-        if(!find(k)) return false;  //no k in the file
+        // if(!find(k)) return false;  //no k in the file
 
         idxNode* r=Eraseidx(k,root);
 
