@@ -396,12 +396,12 @@ private:
 public:
 
     Ticket():
-        Users("file_users"),
-        Cur_users("file_cur_users"),
-        Trains_base("file_trains_base"), Trains_released("file_trains_released"),
-        Database_orders("file_orders"),
-        Database_queue("file_queue"),
-        Database_query("file_query") {
+        Users("file_users", 10),
+        Cur_users("file_cur_users", 10),
+        Trains_base("file_trains_base", 70), Trains_released("file_trains_released", 70),
+        Database_orders("file_orders", 20),
+        Database_queue("file_queue", 10),
+        Database_query("file_query", 50) {
         // 读取总orderID
         ifstream totalID_in;
         totalID_in.open("file_totalID", ios::in);
