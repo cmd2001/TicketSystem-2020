@@ -14,6 +14,6 @@ AUX_SOURCE_DIRECTORY(src DIR_SRCS)
 
 add_executable(code ${DIR_SRCS})
 
-add_executable(backend backend.cpp)
+# add_executable(backend backend.cpp)
 
-add_executable(test_cache BPlusTree/test_cache.cpp)
+# add_executable(test_cache BPlusTree/test_cache.cpp)
