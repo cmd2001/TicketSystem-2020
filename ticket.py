@@ -277,7 +277,7 @@ class Constant:
 
     query_ticket_list = (0, 1, 2, 3, 5, 6, 7, 8, 9)
     query_ticket_table_head = ('Train ID', 'Start Station', 'Start Date', 'Start Time',
-                               'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Remaining Seat')
+                               'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Remaining Seat', 'Action')
     query_transfer_list = (0, 1, 2, 3, 5, 6, 7, 8, 9)
     query_transfer_table_head = ('Train ID', 'Start Station', 'Start Date', 'Start Time',
                                'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Remaining Seat')
@@ -293,9 +293,9 @@ class cookiePool:
     def clean(self):
         self.pool.clear()
 
-    def push(self, userName):
+    def push(self, userName, friendlyName):
         id = str(uuid4())
-        self.pool[id] = userName
+        self.pool[id] = (userName, friendlyName)
         return id
     def erase(self, id):
         self.pool.pop(id)

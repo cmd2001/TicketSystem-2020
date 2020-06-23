@@ -104,17 +104,40 @@
                 <div class="mdui-col-xs-6">
                     <form role = "form" action = {{form_path}} method = "post">
                         {% for x in form %}
-                        {% if x[3] %}
-                            <div class="mdui-textfield mdui-textfield-floating-label">
-                                <label class="mdui-textfield-label">{{x[0]}}</label>
-                                <input class="mdui-textfield-input" type="text" name = "{{x[1]}}" required = "required">
-                            </div>
-                        {% else %}
-                            <div class="mdui-textfield mdui-textfield-floating-label">
-                                <label class="mdui-textfield-label">{{x[0]}}</label>
-                                <input class="mdui-textfield-input" type="text" name = "{{x[1]}}">
-                            </div>
-                        {% endif %}
+                            {% if x[1] != 'que' %}
+                                {% if x[3] %}
+                                    {% if x[1] == 'password' %}
+                                        <div class="mdui-textfield mdui-textfield-floating-label">
+                                            <label class="mdui-textfield-label">{{x[0]}}</label>
+                                            <input class="mdui-textfield-input" type="password" name = "{{x[1]}}" required = "required">
+                                        </div>
+                                    {% else %}
+                                        <div class="mdui-textfield mdui-textfield-floating-label">
+                                            <label class="mdui-textfield-label">{{x[0]}}</label>
+                                            <input class="mdui-textfield-input" type="text" name = "{{x[1]}}" required = "required">
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    {% if x[1] == 'password' %}
+                                        <div class="mdui-textfield mdui-textfield-floating-label">
+                                            <label class="mdui-textfield-label">{{x[0]}}</label>
+                                            <input class="mdui-textfield-input" type="password" name = "{{x[1]}}">
+                                        </div>
+                                    {% else %}
+                                        <div class="mdui-textfield mdui-textfield-floating-label">
+                                            <label class="mdui-textfield-label">{{x[0]}}</label>
+                                            <input class="mdui-textfield-input" type="text" name = "{{x[1]}}">
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% else %}
+                                <div class="mdui-textfield mdui-textfield-floating-label">
+                                    <label class="mdui-switch">
+                                        <input type="checkbox" name="que" value="true">
+                                        <i class="mdui-switch-icon"></i> Queue
+                                    </label>
+                                </div>
+                            {% endif %}
                         {% endfor %}
                         <br>
                         {% if warning %}
