@@ -139,9 +139,9 @@ def modify_profile():
     ret = ticket.modify_profile(getUsername(), form['username'], form['password'], form['name'], form['mailAddr'], form['privilege'])
     if ret:
         username = getUsername() # flush friendly name
-        tmp = ticket.query_profile(username, username)[1]
-        ret2 = make_response(render_template('form.html', privilege = checkPrivilege(), username = tmp, message = 'Succeed!', form = Constant.modify_profile_form, form_path = '/modify_profile', title = 'Modify Profile'))
-        ret2.set_cookie('id', userPool.push(username, tmp))
+        tmp = ticket.query_profile(username, username)
+        ret2 = make_response(render_template('form.html', privilege = checkPrivilege(), username = tmp[1], message = 'Succeed!', form = Constant.modify_profile_form, form_path = '/modify_profile', title = 'Modify Profile'))
+        ret2.set_cookie('id', userPool.push(form['username'], (tmp[1], tmp[3])))
         return ret2
     else:
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Failed!', form = Constant.modify_profile_form, form_path = '/modify_profile', title = 'Modify Profile')
