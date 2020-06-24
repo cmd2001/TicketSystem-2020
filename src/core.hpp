@@ -27,11 +27,11 @@ class Ticket {
 
     static const int username_SIZE = 22;
     static const int pswd_SIZE = 32;
-    static const int name_SIZE = 22;
+    static const int name_SIZE = 17; // 2-5个汉字
     static const int mailAddr_SIZE = 32;
-    static const int trainID_SIZE = 28;
-    static const int station_SIZE = 42;
-    static const int MAXstationNum = 102;
+    static const int trainID_SIZE = 22;
+    static const int station_SIZE = 32; // 10个汉字以内
+    static const int MAXstationNum = 101;
     static const int MAXseatNum = 100005;
 
 public:
@@ -152,6 +152,7 @@ public:
             return get_date() + " " + get_time();
         }
     };
+
     class type_user {
         friend std::ostream& operator << (std::ostream &os, const type_user &a) {
             os << a.userName << " " << a.name << " " << a.mailAddr << " " << a.privilege;
@@ -163,7 +164,7 @@ public:
     public:
         char userName[username_SIZE];
         char password[pswd_SIZE];
-        char name[name_SIZE]; // 2-5个汉字
+        char name[name_SIZE];
         char mailAddr[mailAddr_SIZE];
         int privilege; // 0-10
 
@@ -171,7 +172,7 @@ public:
         type_user() { privilege = 0; orderNum = 0; } // FIXME: memset 0?
     };
     typedef std::pair<bool, type_user> user_return;
-    typedef std::pair<bool, int> cur_return;
+    typedef std::pair<bool, char> cur_return;
 
     class type_train {
     private:
@@ -181,7 +182,6 @@ public:
         char stations[MAXstationNum][station_SIZE]; // 10个汉字以内
         int pre_prices[MAXstationNum]; //票价前缀和
         int seatNum = 0;    // 0-100000
-        datentime startTime;
         datentime arriving[MAXstationNum]; // 前缀和 但不包含startdate
         datentime leaving[MAXstationNum];  // 前缀和 但不包含startdate
         datentime saleDate[2];
@@ -374,21 +374,21 @@ public:
         datentime saledate[2], arriving, leaving;
         int stationRank, pre_price;
         type_ticket_value() = default;
-        type_ticket_value(const datentime& startTime, const datentime& endTime, const datentime &_arriving, const datentime &_leaving,
+        type_ticket_value(const datentime& _startTime, const datentime& _endTime, const datentime &_arriving, const datentime &_leaving,
                           const int &_stationRank, const int &_sumPrice): arriving(_arriving), leaving(_leaving), stationRank(_stationRank), pre_price(_sumPrice) {
-            saledate[0] = startTime, saledate[1] = endTime;
+            saledate[0] = _startTime, saledate[1] = _endTime;
         }
     };
 
     database_cached<type_userName, type_user> Users;
-    database_cached<type_userName, int> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
+    database_cached<type_userName, char> Cur_users; // 作为一个索引，仅判断是否在当前列表中，查询详细信息还要在Users中查询
     database_cached<type_trainID, type_train> Trains_base;
     database_cached<type_runtimeID, type_train_release> Trains_released;
+    database_cached<type_stationName_trainID, type_ticket_value> Database_query; // 查票数据库
     database_cached<type_userName_orderID, type_order> Database_orders;
     database_cached<type_queue_key, type_userName_orderID> Database_queue; // 候补队列，value为order_key和totalID
     int totalID_runtime; // 运行时的总orderID，在退出时写入文件file_totalID
 
-    database_cached<type_stationName_trainID, type_ticket_value> Database_query;
 
 private:
     char MAXID[trainID_SIZE], MINID[trainID_SIZE];
@@ -663,6 +663,7 @@ public:
         int i = 1;
         bool vis[10] = {0};
         type_train newtrain;
+        datentime startTime;
         int travelTimes[MAXstationNum] = {0}, stopoverTimes[MAXstationNum] = {0};
         while(i < siz) {
             if(i == siz - 1) throw illegal_arg();
@@ -702,10 +703,7 @@ public:
                     for(int k = 0; k < _siz; ++k) newtrain.pre_prices[k + 1] = newtrain.pre_prices[k] + atoi(tmp[k].c_str());
                 } else throw illegal_arg();
             } else if(cmd[i] == "-x") {
-                if(!vis[5]) {
-                    vis[5] = 1;
-                    newtrain.startTime = datentime(cmd[++i]);
-                } else throw illegal_arg();
+                startTime = datentime(cmd[++i]);
             } else if(cmd[i] == "-t") {
                 if(!vis[6]) {
                     vis[6] = 1;
@@ -745,7 +743,7 @@ public:
         }
         for(int i = 0; i < 10; ++i) if(!vis[i]) throw illegal_arg();
         if(Trains_base.query(newtrain.trainID).first) return "-1"; // 已用的ID，操作失败
-        newtrain.arriving[0] = newtrain.leaving[0] = newtrain.startTime;
+        newtrain.arriving[0] = newtrain.leaving[0] = startTime;
         for(int i = 1; i < newtrain.stationNum; ++i) {
             newtrain.arriving[i] = newtrain.leaving[i - 1] + travelTimes[i - 1];
             newtrain.leaving[i] = newtrain.arriving[i] + stopoverTimes[i];
