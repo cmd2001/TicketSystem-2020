@@ -8,9 +8,9 @@
 
 <body class="mdui-appbar-with-toolbar mdui-drawer-body-left">
 {% if message %}
-<script type="text/javascript">
-    alert("{{message}}")
-</script>
+    <script type="text/javascript">
+        alert("{{message}}")
+    </script>
 {% endif %}
 
 <div class="mdui-appbar mdui-appbar-fixed mdui-toolbar mdui-color-indigo">
@@ -18,7 +18,9 @@
     <a href="/"><span class="mdui-typo-title">Ticket System 2020</span></a>
     <div class="mdui-toolbar-spacer"></div>
     {% if not flag %}
-    <a class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">account_circle</i></a>{{username}}<a href="/logout"><button class="mdui-btn mdui-ripple mdui-color-purple">Logout</button></a>
+        <a href="/user_profile" class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">account_circle</i></a>
+        {{username}}
+        <a href="/logout"><button class="mdui-btn mdui-ripple mdui-color-purple">Logout</button></a>
     {% endif %}
 </div>
 
@@ -96,6 +98,12 @@
                 <li class="mdui-list-item mdui-ripple">
                     <i class="mdui-list-item-icon mdui-icon material-icons">account_box</i>
                     <div class="mdui-list-item-content">Login</div>
+                </li>
+            </a>
+            <a href="/register">
+                <li class="mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">add_box</i>
+                    <div class="mdui-list-item-content">Register</div>
                 </li>
             </a>
         </ul>

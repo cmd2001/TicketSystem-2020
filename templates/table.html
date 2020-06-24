@@ -18,7 +18,9 @@
     <a href="/"><span class="mdui-typo-title">Ticket System 2020</span></a>
     <div class="mdui-toolbar-spacer"></div>
     {% if not flag %}
-        <a class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">account_circle</i></a>{{username}}<a href="/logout"><button class="mdui-btn mdui-ripple mdui-color-purple">Logout</button></a>
+        <a href="/user_profile" class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">account_circle</i></a>
+        {{username}}
+        <a href="/logout"><button class="mdui-btn mdui-ripple mdui-color-purple">Logout</button></a>
     {% endif %}
 </div>
 
@@ -98,6 +100,12 @@
                     <div class="mdui-list-item-content">Login</div>
                 </li>
             </a>
+            <a href="/register">
+                <li class="mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">add_box</i>
+                    <div class="mdui-list-item-content">Register</div>
+                </li>
+            </a>
         </ul>
     {% endif %}
 </div>
@@ -139,7 +147,7 @@
                         {% for j in col_list %}
                             <td>{{ret[i][j]}}</td>
                         {% endfor %}
-                        {% if title == 'Ticket' %}
+                        {% if title == 'Ticket' or title == 'Transfer' %}
                             <td>
                                 <form name='buyTicket2' action='buy_ticket2' method='post'>
                                     <button type="submit">Buy!</button>

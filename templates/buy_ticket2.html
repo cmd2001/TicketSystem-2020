@@ -17,7 +17,11 @@
     <span class="mdui-btn mdui-btn-icon mdui-ripple mdui-ripple-white" mdui-drawer="{target: '#main-drawer', swipe: true}"><i class="mdui-icon material-icons">menu</i></span>
     <a href="/"><span class="mdui-typo-title">Ticket System 2020</span></a>
     <div class="mdui-toolbar-spacer"></div>
-    <a class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">account_circle</i></a>{{username}}<a href="/logout"><button class="mdui-btn mdui-ripple mdui-color-purple">Logout</button></a>
+    {% if not flag %}
+        <a href="/user_profile" class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">account_circle</i></a>
+        {{username}}
+        <a href="/logout"><button class="mdui-btn mdui-ripple mdui-color-purple">Logout</button></a>
+    {% endif %}
 </div>
 
 <div class="mdui-drawer" id="main-drawer">
@@ -96,6 +100,12 @@
                     <div class="mdui-list-item-content">Login</div>
                 </li>
             </a>
+            <a href="/register">
+                <li class="mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">add_box</i>
+                    <div class="mdui-list-item-content">Register</div>
+                </li>
+            </a>
         </ul>
     {% endif %}
 </div>
@@ -108,7 +118,7 @@
         {% endif %}
         <div class="mdui-row">
             <div class="mdui-col-xs-6">
-                <form role = "form" action = "buy_ticket2" method = "post">
+                <form role = "form" action = "/buy_ticket2" method = "post">
                     <input type='hidden' name='trainID' value='{{trainID}}'>
                     <input type='hidden' name='day' value='{{day}}'>
                     <input type='hidden' name='ffrom' value='{{ffrom}}'>
