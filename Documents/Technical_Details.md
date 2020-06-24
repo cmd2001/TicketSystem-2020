@@ -1,6 +1,6 @@
 # 实现技术细节
 
-### B+树
+## B+树
 
 两种节点，左自右开，`0-base`，不同使用序列。
 
@@ -30,7 +30,7 @@
 
 `save()`: 提供一个flush的显式接口。
 
-### B+树(含缓存)
+## B+树(含缓存)
 
 双`map`实现`LRU`算法，读写缓存共用一个`map`，注意标记合并。
 
@@ -59,23 +59,98 @@
 `size()`：返回size_t类型，表示当前B+树的大小。
 
 
-### 后端
+## 后端（src文件夹下的内容）
+#### 数据库
 
-**为保证运行速度，后端默认指令合法，不进行任何合法性检查。**
+`database<type_userName, type_user> Users; // 用户的的相关信息`
 
-#### 成员函数
+`database<type_userName, int> Cur_users; // 仅判断是否已登录（value恒为0），查询详细信息还要在Users中查询 `
 
-同[TicketSystem-2020](https://github.com/oscardhc/TicketSystem-2020)要求函数。返回string为答案。
+`database<type_trainID, type_train> Trains_base; // 列车的基本信息`
 
-#### 特别注意：
+`database<type_runtimeID, type_train_release> Trains_released; // 已发布列车的车票信息等`
 
-`query_ticket`：查询过两站的列车，双指针滑动找对应。注意列车不能倒开。
+`database_cached<type_stationName_trainID, type_ticket_value> Database_query; // 查票数据库`
 
-`query_transfer`：查询过两站的列车，枚举起始站列车，查询信息，找中间站，查询过中间站列车，与终点站双指针对比。
+`database<type_userName_orderID, type_order> Database_orders; // 各用户的订单信息`
 
-`queue`：~~B+树模拟队列~~，列车的`runtimeID(TrainID+Date)`和用户购票`ID`作为`key`，避免循环不必要候补。
+`database<type_queue_key, type_userName_orderID> Database_queue; // 候补队列`
 
-### 前端
+#### 数据库具体解释
+
+`type_trainID`和`type_userName`是封装好的定长字符串。
+
+`type_user`类中存储一个用户T的全部信息。
+
+`type_train`类中存储一辆列车的全部信息（除具体座位数）。
+
+`type_runtimeID`类即包含一个trainID字符数组和日期。
+
+`type_train_release`存储已发布车次的具体座位信息，它包含函数`queryseats(st, ed)`，返回区间`(st, ed)`最大可用票数。
+
+`type_stationName_trainID`存储某列车经过的车站和该车次id号，用于查票和查询换乘。
+
+`type_ticket_value`存放用于查票的值，具体包括列车的运营日期范围、该站的编号、到达与离开该站的时间（相对），该站的票价前缀和。
+
+`Database_stations`的value为一个std::pair，分别是该车次的runtimeID和该站在这个车次中的编号（0-base）。
+
+`type_userName_orderID`存储用户`id`和该用户的订单`id`（对每个用户从1开始）。
+
+`type_order`存储一个订单的所有信息，包括订单状态等。
+
+`Database_queue`：B+树模拟队列，避免循环不必要候补。
+
+`type_queue_key`包含车次的runtimeID和全局订单编号。（全局订单编号另开了一个file_totalID文件显式存储，每次更新即时写入文件）
+
+#### 杂项
+
+`Ticket::datentime`是用于存储时间和日期的自定义类，后端中的时间、日期都是以这种形式存储，具体成员为`date`和`minu`（均为int型，`date`是从2020年1月0日算起的天数，minu将小时和分钟整合在一起）。
+
+tools.hpp中实现了数个core中用到的小工具函数，不再一一列数。
+
+**为保证运行速度，后端默认指令参数是合法的，不进行任何参数合法性检查。后端仅有非法指令、缺参数、日期越界等异常抛出，具体见src/exceptions.hpp文件。**
+
+#### 成员函数的实现方法简介
+
+同[TicketSystem-2020](https://github.com/oscardhc/TicketSystem-2020)要求函数。返回文档要求的string为答案。
+
+具体实现：
+
+`add_user`：添加用户。存入`Users`数据库。
+
+`login`：该用户登录。存入`Cur_users`数据库。
+
+`logout`：该用户登出。在`Cur_users`数据库中删除用户。
+
+`query_profile`：在`Users`数据库中查询该用户。
+
+`modify_profile`：在`Users`数据库中修改该用户的数据。
+
+`add_train`：添加车次。信息全部存入`Trains_base`数据库。
+
+`release_train`：发布车次。对运营日期范围内的每一天在`Trains_released`中存入初始化的座位数。
+
+`query_train`：查询车次。在`Trains_base`中查询出车次的基本信息，若已发布则再在`Trains_released`中查询出具体座位情况。
+
+`delete_train`：删除未发布的车次。在`Trains_base`中删除车次。
+
+`query_ticket`：查询某天从某站到某站的车票。在`Database_query`中range2出所有经过这两站的列车id，由于range的有序性，可用双指针滑动来匹配id相符的车次，若日期条件符合则放入临时数组。待匹配结束，将临时数组按time或cost排序，输出结果。
+
+`query_transfer`：查询一次换乘下的车票。在`Database_query`中range2出所有经过这两站的列车id；对每个经过起始站的车次，枚举它之后经过的车站作为可能的中间站，再range2出所有经过这个中间站的车次，运用同`query_ticket`的双指针滑动的方法找到同样经过终点站的车次作为第二趟车次。若日期、时间合法，则这个方案可行。最终输出time/cost最优的一个可行换乘方案。
+
+（注：因为`type_ticket_value`的设计，查票和查换乘均不用在`Trains_base`中查询车次的全部信息。这是提速的一个关键）
+
+`buy_ticket`：买票操作。在`Trains_base`中查询出该车次的全部信息，找到这两站的在其中的编号；若剩余票数足够则直接购买，更新总购买ID和用户的局部购买ID，更新该车次的座位信息；若不够但允许候补则添加进`Database_queue`中；不管怎么样，只要操作成功，都要在`Database_orders`中添加订单。
+
+`query_order`：查询某用户的所有订单。直接在`Database_orders`中range出订单即可。
+
+`refund_ticket`：退票。若本来就是候补状态，则直接删去候补；若购买成功，座位复原，range出该车次的候补队列，座位足够则候补购票成功，修改相关数据库。
+
+`clean`：清空各数据库，总订单ID清零。
+
+`exit`：清空`Cur_users`，返回"bye"，在主程序中退出程序。
+
+## 前端
 
 基于MDUI，所有静态文件存储于`https://cdn.yukisaki.io:2333/mdui`
 
