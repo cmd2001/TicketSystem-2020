@@ -703,7 +703,10 @@ public:
                     for(int k = 0; k < _siz; ++k) newtrain.pre_prices[k + 1] = newtrain.pre_prices[k] + atoi(tmp[k].c_str());
                 } else throw illegal_arg();
             } else if(cmd[i] == "-x") {
-                startTime = datentime(cmd[++i]);
+                if(!vis[5]) {
+                    vis[5] = 1;
+                    startTime = datentime(cmd[++i]);
+                } else throw illegal_arg();
             } else if(cmd[i] == "-t") {
                 if(!vis[6]) {
                     vis[6] = 1;

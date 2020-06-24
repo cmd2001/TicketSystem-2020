@@ -35,8 +35,8 @@ int main() {
                     debug << "in C++ out = " << tmp << "\n$Final" << endl;
                     cout << tmp << "\n$Final" << endl; // magic code
                     if(tmp == "bye") exit(0);
-                } catch(...) {
-                    debug << "failed1" << endl;
+                } catch(MLJ::exception &e) {
+                    debug << e.what() << endl;
                     cout << "$Failed" << endl; // magic code
                 }
                 is_legal_cmd = 1;
