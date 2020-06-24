@@ -71,12 +71,13 @@ public:
                     case 3:  date += 29; // March
                     case 2:  date += 31; // Feb.
                     case 1:  date += 0; break; // Jan.
-                    default: date = 0;
+                    default: date = 0; throw illegal_datentime();
                 }
                 date += (d[3] - '0') * 10 + d[4] - '0';
             }
             if(t != "") {
                 minu = 60 * ((t[0] - '0') * 10 + t[1] - '0') + (t[3] - '0') * 10 + t[4] - '0';
+                if(minu < 0 || minu >= 1440) throw illegal_datentime();
             }
         }
         datentime operator+(const int &m) const {
@@ -139,7 +140,6 @@ public:
             else if(date <= 305) ret = "10-", data -= 274;
             else if(date <= 335) ret = "11-", data -= 305;
             else if(date <= 366) ret = "12-", data -= 335;
-            else throw illegal_date();
             return ret + (data < 10 ? "0" : "") + std::to_string(data);
         }
 
