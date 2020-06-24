@@ -186,7 +186,7 @@ class Ticket:
         if ret0[0] == '$Failed' or ret0[0] == '-1':
             return -1
         ret = [[start, end, time]]
-        for i in range(1, len(ret0) - 1):
+        for i in range(0, len(ret0) - 1):
             ret.append(ret0[i].split(' '))
         return ret
 
@@ -281,10 +281,119 @@ class Constant:
                                'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Remaining Seat', 'Action')
     query_transfer_list = (0, 1, 2, 3, 5, 6, 7, 8, 9)
     query_transfer_table_head = ('Train ID', 'Start Station', 'Start Date', 'Start Time',
-                               'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Remaining Seat')
+                               'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Remaining Seat', 'Action')
     query_order_list = (0, 1, 2, 3, 4, 6, 7, 8, 9, 10)
     query_order_table_head = ('Status', 'Train ID', 'Start Station', 'Start Date', 'Start Time',
                               'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Numbers')
+
+import re
+
+class InputValidator:
+    def __init__(self):
+        self.regs = {}
+        self.regs2 = {}
+        self.regs['username'] = '[a-zA-Z][a-zA-Z0-9_]{0,19}$'
+        self.regs['password'] = '[a-zA-Z0-9_]{6,30}$'
+        self.regs['password2'] = '[a-zA-Z0-9_]{6,30}$'
+        self.regs['name'] = '[\u4e00-\u9fa5]{2,5}$'
+        self.regs['mailAddr'] = '[a-zA-Z0-9@\.]{2,30}$'
+        self.regs2['mailAddr'] = '[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+$'
+        self.regs['privilege'] = '([0-9])|10$'
+        self.regs['trainID'] = '[a-zA-Z][a-zA-Z0-9_]{0,19}$'
+        self.regs['stationNum'] = '([1-9][0-9]*)|100$'
+        self.regs['stations'] = '[\u4e00-\u9fa5]{1,10}$' # need split
+        self.regs['seatNum'] = '([1-9][0-9]{0,4})|100000$'
+        self.regs['prices'] = '([1-9][0-9]{0,4})|100000$' # need split
+        self.regs['startTime'] = '[0-9]{2}:[0-9]{2}$'
+        self.regs['travelTimes'] = '([1-9][0-9]{0,3})|10000$' # need split
+        self.regs['stopoverTimes'] = '([1-9][0-9]{0,3})|10000$' # need split
+        self.regs['saleDate'] = '((06-(([0-2][1-9])|30))|(07-(([0-2][1-9])|30|31))|(08-(([0-2][1-9])|30|31)))|((06-(([0-2][1-9])|30))|(07-(([0-2][1-9])|30|31))|(08-(([0-2][1-9])|30|31)))$'
+        self.regs['type'] = '[A-Z]$'
+        self.regs['num'] = '[0-9]*$'
+
+        self.regs['time'] = '(06-(([0-2][1-9])|30))|(07-(([0-2][1-9])|30|31))|(08-(([0-2][1-9])|30|31))$'
+        self.regs['day'] = '(06-(([0-2][1-9])|30))|(07-(([0-2][1-9])|30|31))|(08-(([0-2][1-9])|30|31))$'
+        self.regs['date'] = '(06-(([0-2][1-9])|30))|(07-(([0-2][1-9])|30|31))|(08-(([0-2][1-9])|30|31))$'
+        self.regs['start'] = '[\u4e00-\u9fa5]{1,10}$'
+        self.regs['end'] = '[\u4e00-\u9fa5]{1,10}$'
+        self.regs['ffrom'] = '[\u4e00-\u9fa5]{1,10}$'
+        self.regs['to'] = '[\u4e00-\u9fa5]{1,10}$'
+        self.regs['sort_param'] = '[0-1]$'
+        self.regs['number'] = '([1-9][0-9]{0,4})|100000$'
+
+    def check_Normal(self, dic):
+        for key, value in dic.items():
+            if key == 'que':
+                continue
+            print('key = ', key, 'in = ', key in self.regs)
+            print(key, value)
+            assert(key in self.regs)
+            if re.match(self.regs[key], value) == None:
+                print('dismatch at key = ', key, ' value = ', value, ' exp = ', self.regs[key])
+                return 0
+            if key in self.regs2:
+                if re.match(self.regs2[key], value) == None:
+                    return 0
+        return 1
+    def check_addTrain(self, dic, stationNum):
+        for key, value in dic.items():
+            if key == 'stations':
+                x = value.split('|')
+                print(key)
+                if len(x) != stationNum:
+                    print(len(x), stationNum)
+                    print('fucked 1')
+                    return 0
+                for y in x:
+                    if re.match(self.regs[key], y) == None:
+                        print('fucked 2')
+                        return 0
+            elif key == 'prices':
+                x = value.split('|')
+                if len(x) != stationNum - 1:
+                    return 0
+                for y in x:
+                    if re.match(self.regs[key], y) == None:
+                        return 0
+            elif key == 'travelTimes':
+                x = value.split('|')
+                if len(x) != stationNum - 1:
+                    return 0
+                for y in x:
+                    if re.match(self.regs[key], y) == None:
+                        return 0
+            elif key == 'stopoverTimes':
+                if stationNum == 2:
+                    if x == '_':
+                        continue;
+                    else:
+                        return 0
+                x = value.split('|')
+                if len(x) != stationNum - 2:
+                    return 0
+                for y in x:
+                    if re.match(self.regs[key], y) == None:
+                        return 0
+            else:
+                print('key = ', key, 'in = ', key in self.regs)
+                assert(key in self.regs)
+                if re.match(self.regs[key], value) == None:
+                    return 0
+                if key in self.regs2:
+                    if re.match(self.regs2[key], value) == None:
+                        return 0
+        return 1
+    def check_modifyProfile(self, dic):
+        for key, value in dic.items():
+            if (key == 'name' or key == 'password' or key == 'mailAddr' or key == 'privilege' or key == 'password2') and value == '':
+                continue
+            assert(key in self.regs)
+            if re.match(self.regs[key], value) == None:
+                return 0
+            if key in self.regs2:
+                if re.match(self.regs2[key], value) == None:
+                    return 0
+        return 1
 
 from uuid import uuid4
 
@@ -312,6 +421,7 @@ class cookiePool:
 class initChecker():
     def __init__(self, arg):
         self.arg = arg
+        self.isDown = 0
 
         try:
             file = open(arg, 'r')
@@ -332,8 +442,15 @@ class initChecker():
         file.close()
         self.sta = 1
 
+    def shutdown(self):
+        self.isDown = 1
+
+    def down(self):
+        return self.isDown
+
     def reset(self):
         file = open(self.arg, 'w')
         file.write('0')
         file.close()
+
 

@@ -8,9 +8,9 @@
 
 <body class="mdui-appbar-with-toolbar mdui-drawer-body-left">
 {% if message %}
-<script type="text/javascript">
-    alert("{{message}}")
-</script>
+    <script type="text/javascript">
+        alert("{{message}}")
+    </script>
 {% endif %}
 
 <div class="mdui-appbar mdui-appbar-fixed mdui-toolbar mdui-color-indigo">
@@ -18,7 +18,9 @@
     <a href="/"><span class="mdui-typo-title">Ticket System 2020</span></a>
     <div class="mdui-toolbar-spacer"></div>
     {% if not flag %}
-    <a class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">account_circle</i></a>{{username}}<a href="/logout"><button class="mdui-btn mdui-ripple mdui-color-purple">Logout</button></a>
+        <a href="/user_profile" class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">account_circle</i></a>
+        {{username}}
+        <a href="/logout"><button class="mdui-btn mdui-ripple mdui-color-purple">Logout</button></a>
     {% endif %}
 </div>
 
