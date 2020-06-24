@@ -18,73 +18,87 @@
 
     <div class="mdui-drawer" id="main-drawer">
         {% if not flag %}
-        <ul class="mdui-list" mdui-collapse="{accordion: true}">
-            <a href="/">
-                <li class="mdui-list-item mdui-ripple">
-                    <i class="mdui-list-item-icon mdui-icon material-icons">dashboard</i>
-                    <div class="mdui-list-item-content">Control Panel</div>
+            <ul class="mdui-list" mdui-collapse="{accordion: true}">
+                <a href="/">
+                    <li class="mdui-list-item mdui-ripple">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">dashboard</i>
+                        <div class="mdui-list-item-content">Control Panel</div>
+                    </li>
+                </a>
+                <li class="mdui-collapse-item">
+                    <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">account_box</i>
+                        <div class="mdui-list-item-content">User Management</div>
+                        <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                    </div>
+                    <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                        <a href="/query_profile"><li class="mdui-list-item mdui-ripple">Query Profile</li></a>
+                        {% if privilege %}
+                            <a href="/add_user"><li class="mdui-list-item mdui-ripple">Add User</li></a>
+                        {% endif %}
+                        <a href="/modify_profile"><li class="mdui-list-item mdui-ripple">Modify Profile</li></a>
+                    </ul>
                 </li>
-            </a>
-            <li class="mdui-collapse-item">
-                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
-                    <i class="mdui-list-item-icon mdui-icon material-icons">account_box</i>
-                    <div class="mdui-list-item-content">User Management</div>
-                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
-                </div>
-                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
-                    <a href="/query_profile"><li class="mdui-list-item mdui-ripple">Query Profile</li></a>
-                    <a href="/add_user"><li class="mdui-list-item mdui-ripple">Add User</li></a>
-                    <a href="/modify_profile"><li class="mdui-list-item mdui-ripple">Modify Profile</li></a>
-                </ul>
-            </li>
-            <li class="mdui-collapse-item">
-                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
-                    <i class="mdui-list-item-icon mdui-icon material-icons">train</i>
-                    <div class="mdui-list-item-content">Train Schedule</div>
-                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
-                </div>
-                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
-                    <a href="/add_train"><li class="mdui-list-item mdui-ripple">Add Train</li></a>
-                    <a href="/release_train"><li class="mdui-list-item mdui-ripple">Release Train</li></a>
-                    <a href="/query_train"><li class="mdui-list-item mdui-ripple">Query Train</li></a>
-                    <a href="/delete_train"><li class="mdui-list-item mdui-ripple">Delete Train</li></a>
-                </ul>
-            </li>
-            <li class="mdui-collapse-item">
-                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
-                    <i class="mdui-list-item-icon mdui-icon material-icons">shopping_cart</i>
-                    <div class="mdui-list-item-content">Buy Tickets</div>
-                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
-                </div>
-                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
-                    <a href="/query_ticket"><li class="mdui-list-item mdui-ripple">Query Ticket</li></a>
-                    <a href="/query_transfer"><li class="mdui-list-item mdui-ripple">Query Transfer</li></a>
-                    <a href="/buy_ticket"><li class="mdui-list-item mdui-ripple">Buy Ticket</li></a>
-                    <a href="/query_order"><li class="mdui-list-item mdui-ripple">Query Order</li></a>
-                    <a href="/refund_ticket"><li class="mdui-list-item mdui-ripple">Refund Ticket</li></a>
-                </ul>
-            </li>
-            <li class="mdui-collapse-item">
-                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
-                    <i class="mdui-list-item-icon mdui-icon material-icons">desktop_windows</i>
-                    <div class="mdui-list-item-content">System Admin</div>
-                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
-                </div>
-                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
-                    <a href="/clean"><li class="mdui-list-item mdui-ripple">Clear Data</li></a>
-                    <a href="/shutdown"><li class="mdui-list-item mdui-ripple">Shutdown System</li></a>
-                </ul>
-            </li>
-        </ul>
+                <li class="mdui-collapse-item">
+                    <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">train</i>
+                        <div class="mdui-list-item-content">Train Schedule</div>
+                        <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                    </div>
+                    <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                        {% if privilege %}
+                            <a href="/add_train"><li class="mdui-list-item mdui-ripple">Add Train</li></a>
+                            <a href="/release_train"><li class="mdui-list-item mdui-ripple">Release Train</li></a>
+                        {% endif %}
+                        <a href="/query_train"><li class="mdui-list-item mdui-ripple">Query Train</li></a>
+                        {% if privilege %}
+                            <a href="/delete_train"><li class="mdui-list-item mdui-ripple">Delete Train</li></a>
+                        {% endif %}
+                    </ul>
+                </li>
+                <li class="mdui-collapse-item">
+                    <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">shopping_cart</i>
+                        <div class="mdui-list-item-content">Buy Tickets</div>
+                        <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                    </div>
+                    <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                        <a href="/query_ticket"><li class="mdui-list-item mdui-ripple">Query Ticket</li></a>
+                        <a href="/query_transfer"><li class="mdui-list-item mdui-ripple">Query Transfer</li></a>
+                        <a href="/buy_ticket"><li class="mdui-list-item mdui-ripple">Buy Ticket</li></a>
+                        <a href="/query_order"><li class="mdui-list-item mdui-ripple">Query Order</li></a>
+                        <a href="/refund_ticket"><li class="mdui-list-item mdui-ripple">Refund Ticket</li></a>
+                    </ul>
+                </li>
+                {% if privilege %}
+                    <li class="mdui-collapse-item">
+                        <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                            <i class="mdui-list-item-icon mdui-icon material-icons">desktop_windows</i>
+                            <div class="mdui-list-item-content">System Admin</div>
+                            <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                        </div>
+                        <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                            <a href="/clean"><li class="mdui-list-item mdui-ripple">Clear Data</li></a>
+                            <a href="/shutdown"><li class="mdui-list-item mdui-ripple">Shutdown System</li></a>
+                        </ul>
+                    </li>
+                {% endif %}
+            </ul>
         {% else %}
-        <ul class="mdui-list" mdui-collapse="{accordion: true}">
-            <a href="/login">
-                <li class="mdui-list-item mdui-ripple">
-                    <i class="mdui-list-item-icon mdui-icon material-icons">account_box</i>
-                    <div class="mdui-list-item-content">Login</div>
-                </li>
-            </a>
-        </ul>
+            <ul class="mdui-list" mdui-collapse="{accordion: true}">
+                <a href="/login">
+                    <li class="mdui-list-item mdui-ripple">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">account_box</i>
+                        <div class="mdui-list-item-content">Login</div>
+                    </li>
+                </a>
+                <a href="/register">
+                    <li class="mdui-list-item mdui-ripple">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">add_box</i>
+                        <div class="mdui-list-item-content">Register</div>
+                    </li>
+                </a>
+            </ul>
         {% endif %}
     </div>
 
@@ -94,26 +108,35 @@
                     <div class="mdui-typo-display-3 mdui-text-color-indigo">Control Panel</div>
                     <div class="mdui-typo-headline mdui-text-color-indigo">User Management</div>
                     <a href="/query_profile"><button class="mdui-btn mdui-ripple mdui-color-blue">Query Profile</button></a>
-                    <a href="/add_user"><button class="mdui-btn mdui-ripple mdui-color-blue">Add User</button></a>
+                    {% if privilege %}
+                        <a href="/add_user"><button class="mdui-btn mdui-ripple mdui-color-blue">Add User</button></a>
+                    {% endif %}
                     <a href="/modify_profile"><button class="mdui-btn mdui-ripple mdui-color-blue">Modify Profile</button></a><br>
                     <div class="mdui-typo-headline mdui-text-color-indigo">Train Schedule</div>
-                    <a href="/add_train"><button class="mdui-btn mdui-ripple mdui-color-orange">Add Train</button></a>
-                    <a href="/release_train"><button class="mdui-btn mdui-ripple mdui-color-orange">Release Train</button></a>
+                    {% if privilege %}
+                        <a href="/add_train"><button class="mdui-btn mdui-ripple mdui-color-orange">Add Train</button></a>
+                        <a href="/release_train"><button class="mdui-btn mdui-ripple mdui-color-orange">Release Train</button></a>
+                    {% endif %}
                     <a href="/query_train"><button class="mdui-btn mdui-ripple mdui-color-orange">Query Train</button></a>
-                    <a href="/delete_train"><button class="mdui-btn mdui-ripple mdui-color-orange">Delete Train</button></a><br>
+                    {% if privilege %}
+                        <a href="/delete_train"><button class="mdui-btn mdui-ripple mdui-color-orange">Delete Train</button></a><br>
+                    {% endif %}
                     <div class="mdui-typo-headline mdui-text-color-indigo">Buy Tickets</div>
                     <a href="/query_ticket"><button class="mdui-btn mdui-ripple mdui-color-green">Query Ticket</button></a>
                     <a href="/query_transfer"><button class="mdui-btn mdui-ripple mdui-color-green">Query Transfer</button></a>
                     <a href="/buy_ticket"><button class="mdui-btn mdui-ripple mdui-color-green">Buy Ticket</button></a>
                     <a href="/query_order"><button class="mdui-btn mdui-ripple mdui-color-green">Query Order</button></a>
                     <a href="/refund_ticket"><button class="mdui-btn mdui-ripple mdui-color-green">Refund Ticket</button></a><br>
+                    {% if privilege %}
                     <div class="mdui-typo-headline mdui-text-color-indigo">System Administration</div>
-                    <a href="/clean"><button class="mdui-btn mdui-ripple mdui-color-red">Clear Data</button></a>
-                    <a href="/shutdown"><button class="mdui-btn mdui-ripple mdui-color-red">Shutdown System</button></a><br>
+                        <a href="/clean"><button class="mdui-btn mdui-ripple mdui-color-red">Clear Data</button></a>
+                        <a href="/shutdown"><button class="mdui-btn mdui-ripple mdui-color-red">Shutdown System</button></a><br>
+                    {% endif %}
                 </div>
             {% else %}
                     <div class="mdui-typo-title mdui-text-color-black">Please Login First!</div>
                     <a href="/login"><button class="mdui-btn mdui-ripple mdui-color-indigo">Login</button></a>
+                    <a href="/register"><button class="mdui-btn mdui-ripple mdui-color-pink">Register</button></a>
             {% endif %}
         </div>
     </div>

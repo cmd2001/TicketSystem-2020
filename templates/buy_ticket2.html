@@ -37,7 +37,9 @@
                 </div>
                 <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
                     <a href="/query_profile"><li class="mdui-list-item mdui-ripple">Query Profile</li></a>
-                    <a href="/add_user"><li class="mdui-list-item mdui-ripple">Add User</li></a>
+                    {% if privilege %}
+                        <a href="/add_user"><li class="mdui-list-item mdui-ripple">Add User</li></a>
+                    {% endif %}
                     <a href="/modify_profile"><li class="mdui-list-item mdui-ripple">Modify Profile</li></a>
                 </ul>
             </li>
@@ -48,10 +50,14 @@
                     <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
                 </div>
                 <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
-                    <a href="/add_train"><li class="mdui-list-item mdui-ripple">Add Train</li></a>
-                    <a href="/release_train"><li class="mdui-list-item mdui-ripple">Release Train</li></a>
+                    {% if privilege %}
+                        <a href="/add_train"><li class="mdui-list-item mdui-ripple">Add Train</li></a>
+                        <a href="/release_train"><li class="mdui-list-item mdui-ripple">Release Train</li></a>
+                    {% endif %}
                     <a href="/query_train"><li class="mdui-list-item mdui-ripple">Query Train</li></a>
-                    <a href="/delete_train"><li class="mdui-list-item mdui-ripple">Delete Train</li></a>
+                    {% if privilege %}
+                        <a href="/delete_train"><li class="mdui-list-item mdui-ripple">Delete Train</li></a>
+                    {% endif %}
                 </ul>
             </li>
             <li class="mdui-collapse-item">
@@ -68,17 +74,19 @@
                     <a href="/refund_ticket"><li class="mdui-list-item mdui-ripple">Refund Ticket</li></a>
                 </ul>
             </li>
-            <li class="mdui-collapse-item">
-                <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
-                    <i class="mdui-list-item-icon mdui-icon material-icons">desktop_windows</i>
-                    <div class="mdui-list-item-content">System Admin</div>
-                    <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
-                </div>
-                <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
-                    <a href="/clean"><li class="mdui-list-item mdui-ripple">Clear Data</li></a>
-                    <a href="/shutdown"><li class="mdui-list-item mdui-ripple">Shutdown System</li></a>
-                </ul>
-            </li>
+            {% if privilege %}
+                <li class="mdui-collapse-item">
+                    <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">desktop_windows</i>
+                        <div class="mdui-list-item-content">System Admin</div>
+                        <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                    </div>
+                    <ul class="mdui-collapse-item-body mdui-list mdui-list-dense">
+                        <a href="/clean"><li class="mdui-list-item mdui-ripple">Clear Data</li></a>
+                        <a href="/shutdown"><li class="mdui-list-item mdui-ripple">Shutdown System</li></a>
+                    </ul>
+                </li>
+            {% endif %}
         </ul>
     {% else %}
         <ul class="mdui-list" mdui-collapse="{accordion: true}">

@@ -255,7 +255,7 @@ class Ticket:
 class Constant:
     add_user_form = [('Username', 'username', 1), ('Password', 'password', 1), ('Name', 'name', 1), ('Mail Address', 'mailAddr', 1), ('Privilege', 'privilege', 1)]
     query_profile_form = [('Username', 'username', 1)]
-    modify_profile_form = [('Username', 'username', 0), ('Password', 'password', 0), ('Name', 'name', 0), ('Mail Address', 'mailAddr', 0), ('Privilege', 'privilege', 0)]
+    modify_profile_form = [('Username', 'username', 0), ('Password', 'password', 0), ('Repeat Password', 'password2', 1), ('Name', 'name', 0), ('Mail Address', 'mailAddr', 0), ('Privilege', 'privilege', 0)]
     add_train_form = [('Train ID', 'trainID', 1), ('Seat Number', 'seatNum', 1), ("Stations (splited by single '|')" ,'stations', 1),
                       ("Prices (splited by single '|')", 'prices', 1), ('Start Time', 'startTime', 1), ("Travel Times (splited by single '|')", 'travelTimes', 1),
                       ("Stopover Times (splited by single '|')", 'stopoverTimes', 1), ('Sale Date', 'saleDate', 1), ('Train Type', 'type', 1)]
@@ -270,7 +270,8 @@ class Constant:
     login_form = [('Username', 'username', 1), ('Password', 'password', 1)]
     clean_form = [('Enter Your Username Here to Authenticate', 'username', 1)]
     shutdown_form = [('Enter Your Username Here to Authenticate', 'username', 1)]
-    init_form = [('Username', 'username', 1), ('Password', 'password', 1), ('Name', 'name', 1), ('Mail Address', 'mailAddr', 1)]
+    init_form = [('Username', 'username', 1), ('Password', 'password', 1), ('Repeat Password', 'password2', 1), ('Name', 'name', 1), ('Mail Address', 'mailAddr', 1)]
+    register_form = [('Username', 'username', 1), ('Password', 'password', 1), ('Repeat Password', 'password2', 1), ('Name', 'name', 1), ('Mail Address', 'mailAddr', 1)]
 
     query_train_list = (0, 1, 2, 4, 5, 6, 7)
     query_train_table_head = ('Station', 'Arrival Date', 'Arrival Time', 'Departure Date', 'Departure Time', 'Cumulative Price', 'Remaining Seat')
@@ -293,9 +294,12 @@ class cookiePool:
     def clean(self):
         self.pool.clear()
 
-    def push(self, userName, friendlyName):
+    def push(self, userName, data):
         id = str(uuid4())
-        self.pool[id] = (userName, friendlyName)
+        x = [userName]
+        for y in data:
+            x.append(y)
+        self.pool[id] = x
         return id
     def erase(self, id):
         self.pool.pop(id)
