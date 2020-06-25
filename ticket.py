@@ -298,7 +298,7 @@ class InputValidator:
         self.regs['password2'] = '[a-zA-Z0-9_]{6,30}$'
         self.regs['name'] = '[\u4e00-\u9fa5]{2,5}$'
         self.regs['mailAddr'] = '[a-zA-Z0-9@\.]{2,30}$'
-        self.regs2['mailAddr'] = '[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+$'
+        self.regs2['mailAddr'] = '[a-zA-Z0-9\.]+@[a-zA-Z0-9\.]+\.[a-zA-Z0-9\.]+$'
         self.regs['privilege'] = '([0-9])|10$'
         self.regs['trainID'] = '[a-zA-Z][a-zA-Z0-9_]{0,19}$'
         self.regs['stationNum'] = '([1-9][0-9]*)|100$'
