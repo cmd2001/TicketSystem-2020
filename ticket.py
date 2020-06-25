@@ -293,34 +293,34 @@ class InputValidator:
     def __init__(self):
         self.regs = {}
         self.regs2 = {}
-        self.regs['username'] = '[a-zA-Z][a-zA-Z0-9_]{0,19}$'
-        self.regs['password'] = '[a-zA-Z0-9_]{6,30}$'
-        self.regs['password2'] = '[a-zA-Z0-9_]{6,30}$'
-        self.regs['name'] = '[\u4e00-\u9fa5]{2,5}$'
-        self.regs['mailAddr'] = '[a-zA-Z0-9@\.]{2,30}$'
-        self.regs2['mailAddr'] = '[a-zA-Z0-9\.]+@[a-zA-Z0-9\.]+\.[a-zA-Z0-9\.]+$'
-        self.regs['privilege'] = '([0-9])|10$'
-        self.regs['trainID'] = '[a-zA-Z][a-zA-Z0-9_]{0,19}$'
-        self.regs['stationNum'] = '([1-9][0-9]*)|100$'
-        self.regs['stations'] = '[\u4e00-\u9fa5]{1,10}$' # need split
-        self.regs['seatNum'] = '([1-9][0-9]{0,4})|100000$'
-        self.regs['prices'] = '([1-9][0-9]{0,4})|100000$' # need split
-        self.regs['startTime'] = '[0-9]{2}:[0-9]{2}$'
-        self.regs['travelTimes'] = '([1-9][0-9]{0,3})|10000$' # need split
-        self.regs['stopoverTimes'] = '([1-9][0-9]{0,3})|10000$' # need split
-        self.regs['saleDate'] = '((06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31)))\|((06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31)))$'
-        self.regs['type'] = '[A-Z]$'
-        self.regs['num'] = '[0-9]*$'
+        self.regs['username'] = '([a-zA-Z][a-zA-Z0-9_]{0,19})$'
+        self.regs['password'] = '([a-zA-Z0-9_]{6,30})$'
+        self.regs['password2'] = '([a-zA-Z0-9_]{6,30})$'
+        self.regs['name'] = '([\u4e00-\u9fa5]{2,5})$'
+        self.regs['mailAddr'] = '([a-zA-Z0-9@\.]{2,30})$'
+        self.regs2['mailAddr'] = '([a-zA-Z0-9\.]+@[a-zA-Z0-9\.]+\.[a-zA-Z0-9\.]+)$'
+        self.regs['privilege'] = '(([0-9])|10)$'
+        self.regs['trainID'] = '([a-zA-Z][a-zA-Z0-9_]{0,19})$'
+        self.regs['stationNum'] = '(([1-9][0-9]*)|100)$'
+        self.regs['stations'] = '([\u4e00-\u9fa5]{1,10})$' # need split
+        self.regs['seatNum'] = '(([1-9][0-9]{0,4})|100000)$'
+        self.regs['prices'] = '(([1-9][0-9]{0,4})|100000)$' # need split
+        self.regs['startTime'] = '([0-9]{2}:[0-9]{2})$'
+        self.regs['travelTimes'] = '(([1-9][0-9]{0,3})|10000)$' # need split
+        self.regs['stopoverTimes'] = '(([1-9][0-9]{0,3})|10000)$' # need split
+        self.regs['saleDate'] = '(((06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31)))\|((06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31))))$'
+        self.regs['type'] = '([A-Z])$'
+        self.regs['num'] = '([0-9]*)$'
 
-        self.regs['time'] = '(06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31))$'
-        self.regs['day'] = '(06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31))$'
-        self.regs['date'] = '(06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31))$'
-        self.regs['start'] = '[\u4e00-\u9fa5]{1,10}$'
-        self.regs['end'] = '[\u4e00-\u9fa5]{1,10}$'
-        self.regs['ffrom'] = '[\u4e00-\u9fa5]{1,10}$'
-        self.regs['to'] = '[\u4e00-\u9fa5]{1,10}$'
-        self.regs['sort_param'] = '[0-1]$'
-        self.regs['number'] = '([1-9][0-9]{0,4})|100000$'
+        self.regs['time'] = '((06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31)))$'
+        self.regs['day'] = '((06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31)))$'
+        self.regs['date'] = '((06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31)))$'
+        self.regs['start'] = '([\u4e00-\u9fa5]{1,10})$'
+        self.regs['end'] = '([\u4e00-\u9fa5]{1,10})$'
+        self.regs['ffrom'] = '([\u4e00-\u9fa5]{1,10})$'
+        self.regs['to'] = '([\u4e00-\u9fa5]{1,10})$'
+        self.regs['sort_param'] = '([0-1])$'
+        self.regs['number'] = '(([1-9][0-9]{0,4})|100000)$'
 
     def check_Normal(self, dic):
         for key, value in dic.items():
