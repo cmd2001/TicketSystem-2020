@@ -230,7 +230,7 @@ class Ticket:
         com = 'refund_ticket -u username'
         com = com.replace('username', username)
         if num:
-            com += ' -i ' + num
+            com += ' -n ' + num
         self.pipePrint(com)
         ret = self.pipeRead()
         return ret[0] != '$Failed' and ret[0] != '-1'
