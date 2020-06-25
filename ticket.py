@@ -287,6 +287,11 @@ class Constant:
     query_order_table_head = ('Status', 'Train ID', 'Start Station', 'Start Date', 'Start Time',
                               'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Numbers', 'Action')
 
+    list_user_list = (0, 1, 2, 3)
+    list_user_table_head = ('Username', 'Name', 'Mail', 'Privilege')
+    list_train_list = (0, 1, 2, 3, 4, 5, 6, 7, 8)
+    list_train_table_head = ('Train ID', 'Seat Num', 'Station', 'Interval Price', 'Start Time', 'Interval Travel Time', 'Stopover Time', 'Sales Date', 'Train type')
+
 import re
 
 class InputValidator:
@@ -479,4 +484,58 @@ class passwordChecker:
     def getPass(self, name):
         return self.dic[name]
 
+class extCommand:
+    def __init__(self, t, fileUser, fileTrain, rootName):
+        self.ticket = t
+        self.fileUser = fileUser
+        self.fileTrain = fileTrain
+        self.rootName = rootName
+        fout = open(self.fileUser, 'a+')
+        fout.close()
+        fout = open(self.fileTrain, 'a+')
+        fout.close()
+    def add_user(self, username):
+        fout = open(self.fileUser, 'a+')
+        fout.write(username + '\n')
+        fout.close()
+    def get_users(self):
+        fin = open(self.fileUser, 'r')
+        ls = fin.read().split('\n')
+        fin.close()
+        return ls
+    def add_train(self, trainID, seatNum, stations, prices, startTime, travelTimes, stopoverTimes, saleDate, type):
+        fout = open(self.fileTrain, 'a+')
+        fout.write(trainID + ' ' + seatNum + ' ' + stations + ' ' + prices + ' ' + startTime + ' ' + travelTimes + ' ' + stopoverTimes + ' ' + saleDate + ' ' + type + '\n')
+        fout.close()
+    def list_train(self):
+        """
+        :return: [(trainID, seatNum, stations, prices, startTime, travelTimes, stopoverTimes, saleDate, type)*]
+        """
+        fin = open(self.fileTrain, 'r')
+        ls = fin.read().split('\n')
+        fin.close()
+        ret = []
+        for x in ls:
+            if x != '':
+                ret.append(x.split(' '))
+        return ret
+    def delete_train(self, trainID):
+        t = self.list_train()
+        fout = open(self.fileTrain, 'w+')
+        for x in t:
+            if x[0] != trainID:
+                for j in range(0, len(x) - 1):
+                    fout.write(x[j] + ' ')
+                fout.write(x[-1] + '\n')
+        fout.close()
+    def list_user(self):
+        """
+        :return:[(username，name, mailAddr, privilege)*]
+        """
+        ls = self.get_users()
+        ret = []
+        for x in ls:
+            if x != '':
+                ret.append(self.ticket.query_profile(self.rootName, x))
+        return ret
 
