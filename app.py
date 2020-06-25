@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, redirect, make_response
 from ticket import Ticket, Constant, cookiePool, initChecker, InputValidator
 
-rootUsername = 'root'
-rootPassword = 'root'
-rootMailAddr = 'root@ticket.system'
+rootUsername = 'insider_admin'
+rootPassword = 'insider_admin'
+rootMailAddr = 'insider_admin@ticket.system'
 
 
 app = Flask(__name__)
@@ -343,13 +343,21 @@ def refund_ticket():
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), form = Constant.refund_ticket_form, form_path = '/refund_ticket', title = 'Refund Ticket')
 
     form = request.form.to_dict()
+    flag = 0
+    if 'flag' in form:
+        flag = 1
+        form.pop('flag')
     if not validator.check_Normal(form):
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Illegam Input!', form = Constant.refund_ticket_form, form_path = '/refund_ticket', title = 'Refund Ticket')
 
     ret = ticket.refund_ticket(getUsername(), form['num'])
     if ret:
+        if flag:
+            return redirect('/query_order')
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Succeed!', form = Constant.refund_ticket_form, form_path = '/refund_ticket', title = 'Refund Ticket')
     else:
+        if flag:
+            return redirect('/query_order')
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Failed!', form = Constant.refund_ticket_form, form_path = '/refund_ticket', title = 'Refund Ticket')
 
 @app.route('/clean', methods=("GET", "POST"))

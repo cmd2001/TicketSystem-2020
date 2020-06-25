@@ -127,7 +127,7 @@
                 Current User: {{username}}<br>
             {% endif %}
         </div>
-        <table border="1">
+        <table class="mdui-table">
             <tr>
                 {% for x in table_head %}
                     <td>{{x}}</td>
@@ -139,8 +139,23 @@
                         {% for j in col_list %}
                             <td>{{ret[i][j]}}</td>
                         {% endfor %}
+                        {% if ret[i][0] != '[refunded]' %}
+                            <td>
+                                <button type="submit" class="mdui-btn mdui-ripple mdui-color-cyan-a700" form="refund_{{ i }}">Refund</button>
+                            </td>
+                        {% else %}
+                            <td>
+                                <button type="submit" class="mdui-btn mdui-btn-raised" form="refund_{{ i }}" disabled>Refund</button>
+                            </td>
+                        {% endif %}
                     </tr>
                 {%endfor%}
+                {% for i in range(0, ret_len) %}
+                    <form name="refund_{{ i }}" action="refund_ticket" method="post" id="refund_{{ i }}">
+                        <input type="hidden" name="num" value="{{i + 1}}">
+                        <input type="hidden" name="flag" value = "1">
+                    </form>
+                {% endfor %}
             {% else %}
                 {% for i in range(1, ret_len) %}
                     <tr>
@@ -149,17 +164,21 @@
                         {% endfor %}
                         {% if title == 'Ticket' or title == 'Transfer' %}
                             <td>
-                                <form name='buyTicket2' action='buy_ticket2' method='post'>
-                                    <button type="submit">Buy!</button>
-                                    <input type='hidden' name='trainID' value='{{ret[i][0]}}'>
-                                    <input type='hidden' name='day' value='{{ret[i][2]}}'>
-                                    <input type='hidden' name='ffrom' value='{{ret[i][1]}}'>
-                                    <input type='hidden' name='to' value='{{ret[i][5]}}'>
-                                </form>
+                                <button type="submit" class="mdui-btn mdui-ripple mdui-color-cyan-a700" form="buy_{{ i }}">Buy</button>
                             </td>
-                        {%  endif %}
+                        {% endif %}
                     </tr>
                 {%endfor%}
+                {% if title == 'Ticket' or title == 'Transfer' %}
+                    {% for i in range(1, ret_len) %}
+                        <form name="buy_{{ i }}" action="buy_ticket2" method="post" id="buy_{{ i }}">
+                            <input type="hidden" name="trainID" value="{{ret[i][0]}}">
+                            <input type="hidden" name="day" value="{{ret[i][2]}}">
+                            <input type="hidden" name="ffrom" value="{{ret[i][1]}}">
+                            <input type="hidden" name="to" value="{{ret[i][5]}}">
+                        </form>
+                    {% endfor %}
+                {% endif %}
             {% endif %}
         </table>
     </div>

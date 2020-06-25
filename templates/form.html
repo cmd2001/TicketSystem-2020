@@ -120,7 +120,7 @@
                 <div class="mdui-col-xs-6">
                     <form role = "form" action = {{form_path}} method = "post">
                         {% for x in form %}
-                            {% if x[1] != 'que' %}
+                            {% if x[1] != 'que' and x[1] != 'sort_param' %}
                                 {% if x[3] %}
                                     {% if x[1] == 'password' or x[1] == 'password2' %}
                                         <div class="mdui-textfield mdui-textfield-floating-label">
@@ -146,13 +146,27 @@
                                         </div>
                                     {% endif %}
                                 {% endif %}
-                            {% else %}
+                            {% elif x[1] == 'que' %}
                                 <div class="mdui-textfield mdui-textfield-floating-label">
                                     <label class="mdui-switch">
                                         <input type="checkbox" name="que" value="true">
                                         <i class="mdui-switch-icon"></i> Queue
                                     </label>
                                 </div>
+                            {% else %}
+                                <br>
+                                <label class="mdui-radio">
+                                    <input type="radio" name="sort_param" value="0" checked/>
+                                    <i class="mdui-radio-icon"></i>
+                                    Time
+                                </label>
+                                &thinsp;
+                                <label class="mdui-radio">
+                                    <input type="radio" name="sort_param" value="1"/>
+                                    <i class="mdui-radio-icon"></i>
+                                    Cost
+                                </label>
+                                <br>
                             {% endif %}
                         {% endfor %}
                         <br>

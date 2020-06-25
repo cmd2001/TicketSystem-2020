@@ -162,7 +162,7 @@ class Ticket:
         com = 'query_ticket -s start -t end -d time'
         com = com.replace('time', time).replace('start', start).replace('end', end)
         if sort_param:
-            com += ' -p ' + sort_param
+            com += ' -p ' + ('cost' if sort_param == '1' else 'time')
         self.pipePrint(com)
         ret0 = self.pipeRead()
         if ret0[0] == '$Failed' or ret0[0] == '-1':
@@ -198,7 +198,7 @@ class Ticket:
         com = 'buy_ticket -u username -i trainID -d day -n number -f ffrom -t to'
         com = com.replace('username', username).replace('trainID', trainID).replace('day', day)\
                  .replace('ffrom', ffrom).replace('to', to).replace('number', number)
-        if que:
+        if que == '1':
             com += ' -q true'
         self.pipePrint(com)
         ret = self.pipeRead()
@@ -284,7 +284,7 @@ class Constant:
                                'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Remaining Seat', 'Action')
     query_order_list = (0, 1, 2, 3, 4, 6, 7, 8, 9, 10)
     query_order_table_head = ('Status', 'Train ID', 'Start Station', 'Start Date', 'Start Time',
-                              'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Numbers')
+                              'Arrival Station', 'Arrival Date', 'Arrival Time', 'Ticket Price', 'Numbers', 'Action')
 
 import re
 
@@ -307,13 +307,13 @@ class InputValidator:
         self.regs['startTime'] = '[0-9]{2}:[0-9]{2}$'
         self.regs['travelTimes'] = '([1-9][0-9]{0,3})|10000$' # need split
         self.regs['stopoverTimes'] = '([1-9][0-9]{0,3})|10000$' # need split
-        self.regs['saleDate'] = '((06-(([0-2][1-9])|30))|(07-(([0-2][1-9])|30|31))|(08-(([0-2][1-9])|30|31)))|((06-(([0-2][1-9])|30))|(07-(([0-2][1-9])|30|31))|(08-(([0-2][1-9])|30|31)))$'
+        self.regs['saleDate'] = '((06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31)))\|((06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31)))$'
         self.regs['type'] = '[A-Z]$'
         self.regs['num'] = '[0-9]*$'
 
-        self.regs['time'] = '(06-(([0-2][1-9])|30))|(07-(([0-2][1-9])|30|31))|(08-(([0-2][1-9])|30|31))$'
-        self.regs['day'] = '(06-(([0-2][1-9])|30))|(07-(([0-2][1-9])|30|31))|(08-(([0-2][1-9])|30|31))$'
-        self.regs['date'] = '(06-(([0-2][1-9])|30))|(07-(([0-2][1-9])|30|31))|(08-(([0-2][1-9])|30|31))$'
+        self.regs['time'] = '(06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31))$'
+        self.regs['day'] = '(06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31))$'
+        self.regs['date'] = '(06-(([0-2][1-9])|([1-3]0)))|(07-(([0-2][1-9])|([1-3]0)|31))|(08-(([0-2][1-9])|([1-3]0)|31))$'
         self.regs['start'] = '[\u4e00-\u9fa5]{1,10}$'
         self.regs['end'] = '[\u4e00-\u9fa5]{1,10}$'
         self.regs['ffrom'] = '[\u4e00-\u9fa5]{1,10}$'
