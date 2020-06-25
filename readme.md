@@ -128,8 +128,6 @@
 
 #### Frontend
 
-- [x] `modify_profile`不可用
-
 - [x] 所有需要多行输出的操作`(query_train, query_order, query_transfer, query_ticket)`
 
 - [x] 初始化系统
@@ -148,8 +146,20 @@
 
 - [x] 头像点击功能
 
-- [ ] 一键退票
+- [x] 一键退票
 
-- [x] Query Transfer Bug
+- [x] `Query Transfer` 一键购票
 
-- [x] Query Transfer 一键购票
+#### Bug Fix
+
+- [x] `modify_profile`不可用
+
+- [x] `Query Transfer` 无法运作
+
+- [x] 日期合法性校验错误
+
+- [x] `Query Transfer` 显示错误
+
+- [x] `Buy Ticket` 失败显示错误
+
+- [x] `Queue` 按钮功能错误

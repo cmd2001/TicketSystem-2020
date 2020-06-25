@@ -316,7 +316,7 @@ def buy_ticket():
 
     que = '1' if 'que' in form else '0'
     ret = ticket.buy_ticket(getUsername(), form['trainID'], form['day'], form['ffrom'], form['to'], form['number'], que)
-    if ret == -1:
+    if ret == '-1':
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Failed!', form = Constant.buy_ticket_form, form_path = '/buy_ticket', title = 'Buy Ticket')
     elif ret == 'queue':
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Queuing', form = Constant.buy_ticket_form, form_path = '/buy_ticket', title = 'Buy Ticket')
@@ -416,7 +416,7 @@ def buy_ticket2():
 
         que = '1' if 'que' in form else '0'
         ret = ticket.buy_ticket(getUsername(), form['trainID'], form['day'], form['ffrom'], form['to'], form['number'], que)
-        if ret == -1:
+        if ret == '-1':
             return render_template('buy_ticket2.html', message = 'Failed', privilege = checkPrivilege(), username = getFriendlyname(), trainID = form['trainID'], day = form['day'], ffrom = form['ffrom'], to = form['to'])
         elif ret == 'queue':
             return render_template('buy_ticket2.html', message = 'Queue', privilege = checkPrivilege(), username = getFriendlyname(), trainID = form['trainID'], day = form['day'], ffrom = form['ffrom'], to = form['to'])

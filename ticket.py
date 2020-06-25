@@ -167,7 +167,6 @@ class Ticket:
         ret0 = self.pipeRead()
         if ret0[0] == '$Failed' or ret0[0] == '-1':
             return -1
-        print('ret0 = ', ret0)
         ret = [[start, end, time]]
         for i in range(1, len(ret0) - 1):
             ret.append(ret0[i].split(' '))
@@ -186,6 +185,8 @@ class Ticket:
         if ret0[0] == '$Failed' or ret0[0] == '-1':
             return -1
         ret = [[start, end, time]]
+        if len(ret0) == 2: # only 0 and final
+            return ret
         for i in range(0, len(ret0) - 1):
             ret.append(ret0[i].split(' '))
         return ret
