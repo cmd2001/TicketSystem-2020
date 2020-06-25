@@ -401,17 +401,24 @@ from uuid import uuid4
 class cookiePool:
     def __init__(self):
         self.pool = {}
+        self.revPool = {}
     def clean(self):
         self.pool.clear()
 
     def push(self, userName, data):
+        if userName in self.revPool:
+            y = self.revPool[userName]
+            self.pool.pop(y)
+            self.revPool.pop(userName)
         id = str(uuid4())
         x = [userName]
         for y in data:
             x.append(y)
         self.pool[id] = x
+        self.revPool[userName] = id
         return id
     def erase(self, id):
+        self.revPool.pop(self.pool[id][0])
         self.pool.pop(id)
 
     def check(self, id):
@@ -453,5 +460,17 @@ class initChecker():
         file = open(self.arg, 'w')
         file.write('0')
         file.close()
+
+class passwordChecker:
+    def __init__(self):
+        self.dic = {}
+    def push(self, name, pwd):
+        self.dic[name] = pwd
+    def check(self, name, pwd):
+        if not (name in self.dic):
+            return 0
+        return pwd == self.dic[name]
+    def getPass(self, name):
+        return self.dic[name]
 
 

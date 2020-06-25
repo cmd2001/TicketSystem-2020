@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, make_response
-from ticket import Ticket, Constant, cookiePool, initChecker, InputValidator
+from ticket import Ticket, Constant, cookiePool, initChecker, InputValidator, passwordChecker
 
 rootUsername = 'insider_admin'
 rootPassword = 'insider_admin'
@@ -10,6 +10,7 @@ app = Flask(__name__)
 ticket = Ticket('./backend')
 ini = initChecker('inited.txt')
 validator = InputValidator()
+pswdCheck = passwordChecker()
 
 userPool = cookiePool()
 
@@ -54,6 +55,10 @@ def login():
     if not validator.check_Normal(form):
         return render_template('form.html', flag = True, message = 'Illegal Input!', form = Constant.login_form, form_path = '/login', title = 'User Login')
 
+    print()
+    if pswdCheck.check(form['username'], form['password']): # re-login and password is correct.
+        ticket.logout(form['username'])
+
     check = ticket.login(form['username'], form['password'])
     if not check:
         return render_template('form.html', flag = True, message = 'Failed', form = Constant.login_form, form_path = '/login', title = 'User Login')
@@ -61,6 +66,7 @@ def login():
         ret = make_response(redirect('/'))
         tmp = ticket.query_profile(form['username'], form['username'])
         ret.set_cookie('id', userPool.push(form['username'], (tmp[1], tmp[3])))
+        pswdCheck.push(form['username'], form['password'])
         return ret
 
 @app.route('/logout')
@@ -116,7 +122,6 @@ def root():
         return redirect('/down')
     if not ini.check():
         return redirect('/init')
-    userID = request.cookies.get('id')
     if not checkCookie():
         return render_template('root.html', flag = 1)
     return render_template('root.html', privilege = checkPrivilege(), username = getFriendlyname())
@@ -179,10 +184,14 @@ def modify_profile():
 
     ret = ticket.modify_profile(getUsername(), form['username'], form['password'], form['name'], form['mailAddr'], form['privilege'])
     if ret:
+        pswd = pswdCheck.getPass(form['username'])
+        if form['password']:
+            pswd = form['password']
         username = getUsername() # flush friendly name
         tmp = ticket.query_profile(username, username)
         ret2 = make_response(render_template('form.html', privilege = checkPrivilege(), username = tmp[1], message = 'Succeed!', form = Constant.modify_profile_form, form_path = '/modify_profile', title = 'Modify Profile'))
         ret2.set_cookie('id', userPool.push(form['username'], (tmp[1], tmp[3])))
+        pswdCheck.push(form['username'], pswd) # pasword management
         return ret2
     else:
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Failed!', form = Constant.modify_profile_form, form_path = '/modify_profile', title = 'Modify Profile')
