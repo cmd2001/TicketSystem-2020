@@ -420,6 +420,12 @@ class cookiePool:
     def erase(self, id):
         self.revPool.pop(self.pool[id][0])
         self.pool.pop(id)
+    def erase2(self, id):
+        if id in self.revPool:
+            self.pool.pop(self.revPool[id])
+            self.revPool.pop(id)
+            return 1
+        return 0
 
     def check(self, id):
         return id in self.pool

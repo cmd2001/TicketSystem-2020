@@ -154,8 +154,20 @@ tools.hpp中实现了数个core中用到的小工具函数，不再一一列数�
 
 基于MDUI，所有静态文件存储于`https://cdn.yukisaki.io:2333/mdui`
 
-奇怪的打表与模板化系统。（甚至只有4个`html`）
-
 通过管道与后端通讯，静态打表文件存储于`ticket.py`内的`Constant`类中。
 
-**前端检查指令合法性。**
+奇怪的打表与模板化系统。（甚至只有5个`html`）
+
+所有静态数据打表在`ticket.Constant`类中，所有`form`, `table`共用相同html模板，通过`Jinja2`进行展开，`html`中特判需要特殊显示的字段（比如非文本输入框的`input`段，需要额外`button`的`table`栏）。
+
+对需要`post`方式提交的数据，通过隐藏`form`形式。`table`排版时仅放`button`，通过`form_id`联系相应`form`。
+
+基于正则表达式检查指令合法性，指令要求同助教`readme`，所有正则表达式打表于`ticket.InputValidator类中`。
+
+实现登录系统，通过下发`cookie`(一个`uuid4`)实现用户区分。
+
+维护`uuid->(username, friendly_name, privilege)`, `username->uuid`映射，实现权限控制。
+
+普通用户被管理员修改密码后，所在登录设备自动登出。
+
+维护已登录用户的`username->password`映射，在提交后端前进行密码查验，实现二次登录时允许第二个设备登录并登出第一个设备。

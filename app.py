@@ -165,6 +165,7 @@ def query_profile():
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Failed!', form = Constant.query_profile_form, form_path = '/query_profile', title = 'Query Profile')
     return render_template('query_profile.html', privilege = checkPrivilege(), username = getFriendlyname(), ret = ret)
 
+
 @app.route('/modify_profile', methods=("GET", "POST"))
 def modify_profile():
     if ini.down():
@@ -183,6 +184,13 @@ def modify_profile():
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Failed!', form = Constant.modify_profile_form, form_path = '/modify_profile', title = 'Modify Profile')
 
     ret = ticket.modify_profile(getUsername(), form['username'], form['password'], form['name'], form['mailAddr'], form['privilege'])
+
+    def force_logout_user(username):
+        if userPool.erase2(username):
+            ticket.logout(username) # who cares failure?
+
+    if form['username'] != getUsername():
+        force_logout_user(form['username'])
     if ret:
         pswd = pswdCheck.getPass(form['username'])
         if form['password']:
