@@ -9,7 +9,15 @@
 <body class="mdui-appbar-with-toolbar mdui-drawer-body-left">
     {% if message %}
         <script type="text/javascript">
-            alert("{{message}}")
+            mdui.dialog({
+            title: 'NOTE',
+            content: '{{message}}',
+            buttons: [
+                {
+                text: 'Get it!'
+                }
+            ]
+            });
         </script>
     {% endif %}
 

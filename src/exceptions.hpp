@@ -31,10 +31,10 @@ public:
     }
 };
 
-class illegal_date: public exception {
+class illegal_datentime: public exception {
 public:
-    illegal_date(const std::string &de = ""): exception() {
-        variant = "illegal_date"; detail = de;
+    illegal_datentime(const std::string &de = ""): exception() {
+        variant = "illegal_datentime"; detail = de;
     }
 };
 

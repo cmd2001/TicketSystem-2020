@@ -76,6 +76,7 @@ public:
                 date += (d[3] - '0') * 10 + d[4] - '0';
             }
             if(t != "") {
+                if(t[3] - '0' >= 6) throw illegal_datentime();
                 minu = 60 * ((t[0] - '0') * 10 + t[1] - '0') + (t[3] - '0') * 10 + t[4] - '0';
                 if(minu < 0 || minu >= 1440) throw illegal_datentime();
             }
