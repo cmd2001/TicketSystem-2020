@@ -145,7 +145,17 @@
                 {% for i in range(0, ret_len) %}
                     <tr>
                         {% for j in col_list %}
-                            <td>{{ret[i][j]}}</td>
+                            <td>
+                            {% if ret[i][j] == '[success]' %}
+                                <div class="mdui-text-color-light-blue">[success]</div>
+                            {% elif ret[i][j] == '[pending]' %}
+                                <div class="mdui-text-color-amber">[pending]</div>
+                            {% elif ret[i][j] == '[refunded]' %}
+                                <div class="mdui-text-color-grey">[refunded]</div>
+                            {% else %}
+                                {{ret[i][j]}}
+                            {% endif %}
+                            </td>
                         {% endfor %}
                         {% if ret[i][0] != '[refunded]' %}
                             <td>
