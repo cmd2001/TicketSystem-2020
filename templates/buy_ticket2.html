@@ -25,6 +25,7 @@
     <span class="mdui-btn mdui-btn-icon mdui-ripple mdui-ripple-white" mdui-drawer="{target: '#main-drawer', swipe: true}"><i class="mdui-icon material-icons">menu</i></span>
     <a href="/"><span class="mdui-typo-title">Ticket System 2020</span></a>
     <div class="mdui-toolbar-spacer"></div>
+    <a href="/help.pdf" class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">help</i></a>
     {% if not flag %}
         <a href="/user_profile" class="mdui-btn mdui-ripple mdui-btn-icon"><i class="mdui-icon material-icons">account_circle</i></a>
         {{username}}
@@ -53,6 +54,9 @@
                         <a href="/add_user"><li class="mdui-list-item mdui-ripple">Add User</li></a>
                     {% endif %}
                     <a href="/modify_profile"><li class="mdui-list-item mdui-ripple">Modify Profile</li></a>
+                    {% if privilege %}
+                        <a href="/list_user"><li class="mdui-list-item mdui-ripple">List User</li></a>
+                    {% endif %}
                 </ul>
             </li>
             <li class="mdui-collapse-item">
@@ -69,6 +73,7 @@
                     <a href="/query_train"><li class="mdui-list-item mdui-ripple">Query Train</li></a>
                     {% if privilege %}
                         <a href="/delete_train"><li class="mdui-list-item mdui-ripple">Delete Train</li></a>
+                        <a href="/list_train"><li class="mdui-list-item mdui-ripple">List Train</li></a>
                     {% endif %}
                 </ul>
             </li>

@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, redirect, make_response
-from ticket import Ticket, Constant, cookiePool, initChecker, InputValidator, passwordChecker
+from flask import Flask, render_template, request, redirect, make_response, send_from_directory
+from ticket import Ticket, Constant, cookiePool, initChecker, InputValidator, passwordChecker, extCommand
+import os
 
 rootUsername = 'insider_admin'
 rootPassword = 'insider_admin'
@@ -11,6 +12,7 @@ ticket = Ticket('./backend')
 ini = initChecker('inited.txt')
 validator = InputValidator()
 pswdCheck = passwordChecker()
+ext = extCommand(ticket, 'users.txt', 'trains.txt', rootUsername)
 
 userPool = cookiePool()
 
@@ -110,6 +112,7 @@ def init():
 
     ret = ticket.add_user(rootUsername, form['username'], form['password'], form['name'], form['mailAddr'], '9') # privilege of 9
     if ret:
+        ext.add_user(form['username'])
         ini.fil()
     else:
         return render_template('form.html', message = 'Failed', flag = True, form = Constant.init_form, form_path = '/init', title = 'System Initialization')
@@ -143,6 +146,7 @@ def add_user():
 
     ret = ticket.add_user(getUsername(), form['username'], form['password'], form['name'], form['mailAddr'], form['privilege'])
     if ret:
+        ext.add_user(form['username'])
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Succeed!', form = Constant.add_user_form, form_path = '/add_user', title = 'Add User')
     else:
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Failed!', form = Constant.add_user_form, form_path = '/add_user', title = 'Add User')
@@ -220,6 +224,8 @@ def add_train():
     ret = ticket.add_train(form['trainID'], len(form['stations'].split('|')), form['seatNum'], form['stations'],
                            form['prices'], form['startTime'], form['travelTimes'], form['stopoverTimes'], form['saleDate'], form['type'])
     if ret:
+        ext.add_train(form['trainID'], form['seatNum'], form['stations'],
+                      form['prices'], form['startTime'], form['travelTimes'], form['stopoverTimes'], form['saleDate'], form['type'])
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Succeed!', form = Constant.add_train_form, form_path = '/add_train', title = 'Add Train')
     else:
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Failed!', form = Constant.add_train_form, form_path = '/add_train', title = 'Add Train')
@@ -276,6 +282,7 @@ def delete_train():
 
     ret = ticket.delete_train(form['trainID'])
     if ret:
+        ext.delete_train(form['trainID'])
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Succeed!', form = Constant.delete_train_form, form_path = '/delete_train', title = 'Delete Train')
     else:
         return render_template('form.html', privilege = checkPrivilege(), username = getFriendlyname(), message = 'Failed!', form = Constant.delete_train_form, form_path = '/delete_train', title = 'Delete Train')
@@ -459,6 +466,7 @@ def register():
     ret = ticket.add_user(rootUsername, form['username'], form['password'], form['name'], form['mailAddr'], '1')
 
     if ret:
+        ext.add_user(form['username'])
         return redirect('/login')
     else:
         return render_template('form.html', flag = True, message = 'Failed', form = Constant.register_form, form_path = '/register', title = 'User Registration')
@@ -471,6 +479,34 @@ def getProfile():
         return redirect('/')
     ret = ticket.query_profile(getUsername(), getUsername())
     return render_template('query_profile.html', privilege = checkPrivilege(), username = getFriendlyname(), ret = ret)
+
+@app.route('/list_user')
+def list_user():
+    if ini.down():
+        return redirect('/down')
+    if not preCheck() or not checkPrivilege():
+        return redirect('/')
+
+    ret = ext.list_user()
+    return render_template('table.html', privilege = checkPrivilege(), username = getFriendlyname(), title = 'User List', ret = ret, ret_len = len(ret), table_head = Constant.list_user_table_head, col_list = Constant.list_user_list)
+
+@app.route('/list_train')
+def list_train():
+    if ini.down():
+        return redirect('/down')
+    if not preCheck() or not checkPrivilege():
+        return redirect('/')
+
+    ret = ext.list_train()
+    return render_template('table.html', privilege = checkPrivilege(), username = getFriendlyname(), title = 'Train List', ret = ret, ret_len = len(ret), table_head = Constant.list_train_table_head, col_list = Constant.list_train_list)
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+@app.route('/help.pdf')
+def help():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'help.pdf')
 
 initRoot()
 
